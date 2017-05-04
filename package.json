@@ -1,0 +1,18 @@
+{
+    "name": "PCC",
+    "description": "A simple, but powerful command compiler for Minecraft command players.",
+    "version":"1.0.0",
+    "author":[
+        {
+            "name":"pca006132",
+            "email":"john.lck40@gmail.com"
+        }
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/pca006132/pcc.git"
+    },
+    "bugs": {
+        "url": "https://github.com/pca006132/pcc/issues"
+    }
+}
