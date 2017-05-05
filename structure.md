@@ -29,3 +29,8 @@ This file explain the project structure. Please be reminded to modify this if an
   + CommandCombiner:
     + Combine multiple commands into one commmand.  
       (May generate multiple 'one command' if the number of characters exceeds the limit)
+  + CommandUtil:
+    + Functions for string NBT, etc.
+  + App:
+    + Handle parameters
+    + Handle options

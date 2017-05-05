@@ -59,14 +59,19 @@ Procedures can be a part of the module, but you **cannot declare module** inside
 
 Also, you **cannot use annotation and some prefixes** inside procedure, such as generating marker entities, get stats, as procedure is not executed by command blocks, but by player instead.
 ```
-#procedure (name)
+#procedure (name) [loop]
     //commands etc.
 
 //Example:
 #procedure test
     /say test
+
+#procedure main loop
+    /say this is run in a loop
 ```
 
+> For the loop, it would use the arbitrary_player_tick
+> 
 > The advancement will be revoked, users doesn't have to write that.
 
 ### Run procedure
