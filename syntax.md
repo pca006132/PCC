@@ -25,10 +25,10 @@ comment everywhere*/
 >
 > `//`, `/*` or `*/` must be at the start/end of the line, and cannot be inside of the commands.
 > As it would be easier to do so :P.
-> Also, comments inside commands will just reduce the readability of the command.
+> Also, comments inside commands would just reduce the readability of the command.
 
 ## Module
-Module can let users to sort out the commands, and sometimes users may just want to compile a single module. So PCC would allow users to write modules, and only compile that if needed.
+Modules can let users to sort out the commands, and sometimes users may just want to compile a single module. So PCC would allow users to write modules, and only compile that if needed.
 
 Modules can be nested. Content of modules has to be **indented** for 1 more level.
 ```
@@ -44,20 +44,20 @@ Modules can be nested. Content of modules has to be **indented** for 1 more leve
 /say this is not inside module 'test' nor 'test2'
 ```
 
-> Caution: Names of the modules can only occur once only!
+> Caution: Names of the modules can only occur once!
 >
 > Most modules are meaningless to the compiler, compiler will just treat them as normal commands.  
-> But you can specify which module to generate, and some modules with special name will be treated differently.
+> But you can specify which module to generate, and some modules with special names will be treated differently.
 >
-> For modules named 'init' or 'last', those commands would be executed at the first(init, before placing command blocks/entity markers) or at the last(last, after placing command blocks/entity markers).  
+> For modules named 'init' or 'last', init commands will be executed before placing command blocks/entity markers. Whereas modules named last will be executed last, after placing command blocks/entity markers.  
 
 ## Procedure
-Using advancements, we can call procedure and return back to the original position and continue the commands execution **in 1 game tick**. PCC will allow you to generate that and call the module.
+Using advancements, we can call procedures and return them back to their original position and continue the commands execution **in 1 game tick**. PCC will allow you to generate that and name the module.
 
 ### Define procedure
-Procedures can be a part of the module, but you **cannot declare module** inside procedure. Commands inside procedure have to be **indented for 1 more level**.
+Procedures can be part of a module, but you **cannot declare modules** inside a procedure. Commands inside procedures have to be **indented for 1 more level**.
 
-Also, you **cannot use annotation and some prefixes** inside procedure, such as generating marker entities, get stats, as procedure is not executed by command blocks, but by player instead.
+Also, you **cannot use annotations and some prefixes** inside procedures, such as generating marker entities, get stats, as the procedure is not executed by command blocks, but by the player instead.
 ```
 #procedure (name) [loop]
     //commands etc.
@@ -77,7 +77,7 @@ Also, you **cannot use annotation and some prefixes** inside procedure, such as 
 ### Run procedure
 > It is implemented by PCC custom commands. See below for more information.
 >
-> Caution: be careful to use this inside procedure, or it would be a huge problem as it may cause infinite loop.
+> Caution: be careful to use this inside procedure, it could cause huge problems as it may cause infinite loop.
 
 ```
 run (name)
@@ -87,9 +87,9 @@ run test
 ```
 
 ## Chain
-By default, commands are stored in a stright chain towards +x direction. (Start at 1 0 0)
+By default, commands are stored in a straight chain towards +x direction. (Start at 1 0 0)
 
-Users can start new chain, with some special properties. Commands in it have to indent for 1 more level.
+Users can start a new chain, with certain special properties. Commands in them will have to indent another level.
 ```
 #chain (x) (y) (z) [direction1] [loop]
 //or
@@ -128,7 +128,7 @@ Wrap:
 ```
 
 ## Command properties
-Command properties are defined by its prefix:
+Command properties are defined by their prefix:
 + by default: UpdateLastExecution:1b, auto:1b, none conditional, chain command block
 + r: auto:1b, repeating command block
 + i: auto:0b, impulse command block
@@ -137,7 +137,7 @@ Command properties are defined by its prefix:
 + 0: auto:0b
 + r: raw command(command after it will not be further parsed)
 
-> Only ?: and r: prefixes are allowed in procedure.
+> Only ?: and r: prefixes are allowed in procedures.
 
 You can inherit prefixes by writing a line with prefixes **only**, and commands which need to inherit them have to be indented for 1 more level.
 ```
@@ -148,7 +148,7 @@ You can inherit prefixes by writing a line with prefixes **only**, and commands 
 ```
 
 ## Commands in multiline
-You can split commands into multiple lines if needed, for example, for long nested /execute command or long NBT.
+You can split commands into multiple lines if needed, for example, a long nested /execute command or long NBT.
 The lines after the first line have to be indented for 1 more level.
 Note that **no empty lines are allowed in it.**
 
@@ -160,7 +160,7 @@ For the following example, please note that there are spaces after line 1,2,3 (b
     execute @e ~ ~ ~
     execute @a ~ ~ ~
     say IDK why i will use so many exe
-    cute.
+    cutes.
 
 //will be compiled as
 
@@ -185,7 +185,7 @@ say the location of this command block is labeled as test
 > Also, for the same label, there can only be one coordinate(command block)
 
 ### Marker entity
-Summon a marker entity at the coordinate of the next command block.
+Summon a marker entity at the coordinates of the next command block.
 Can specify its name and tag.  
 Useful for targeting **multiple** command blocks.
 
@@ -215,9 +215,9 @@ Set the score of an entity/a player to the stats of a command block by stats com
 ```
 
 ## JavaScript
-Users can put JavaScript in commands, and run them during generation. So they don't have to paste a lot of commands that no one can understand, and they can modify the commands later easily.
+Users can put JavaScript in commands, and run them during generation. So they don't have to paste a lot of commands that no one can understand, and they can modify the commands later with ease.
 
-> This is still in development, so the API is not so sure.
+> This is still in development, so the API is not complete/not set in stone.
 
 Order:
 1. load from URL
@@ -236,7 +236,7 @@ Users can load scripts from URL, to declare variable, define useful functions, a
 ```
 
 ### Embed script
-Users can also embed scripts into the file, to declare variable, define useful functions, add custom commands/annotation etc.
+Users can also embed scripts into the file, to declare variables, define useful functions, add custom commands/annotation etc.
 
 > This can only occur once per file
 
@@ -256,9 +256,9 @@ Users can generate multiple commands for further processing. Commands(Lines) are
 ```
 
 ### Inline expression
-Users can run inline expression during generation. So they can use variables in commands, get coordinate of other command blocks with label etc.
+Users can run inline expressions during generation. So they can use variables in commands, get coordinates of other command blocks with labels, etc.
 
-Codes inside `#{}` will be parsed, and will be replaced by its result.
+Codes inside `#{}` will be parsed, and will be replaced by their results.
 
 Users can escape that by adding a \` character. As \` is an escape character, users need to escape that by another \` if they need to use it in commands. Or users can just use raw string mode (prefix `?:`).
 
