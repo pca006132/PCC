@@ -1,5 +1,9 @@
+/** @module CommandBlock*/
+
+
 const runner = require('./JsRunner.js');
 const util = require('./CommandUtil.js');
+const tran = require('./Translate.js');
 
 //directions
 const UP = 0;
@@ -38,7 +42,7 @@ function directionToState(direction) {
 
 /**
  * Convert command block type to name string
- * @param {number} command block type
+ * @param {number} type command block type
  * @returns {string} command block id name
  */
 function typeToName(cbType) {
@@ -75,7 +79,7 @@ function stringToDirection(direction) {
         case "-z":
             return NORTH;
     }
-    throw new Error("Invalid direction");
+    throw new Error(trans.translate("InvalidDirectionError", direction));
 }
 
 
@@ -91,12 +95,12 @@ class CommandBlock {
      * @param  {string} command
      * @param  {string} lineNum        Line number
      * @param  {number[]} coor         [x, y, z]
-     * @param  {boolean} raw = false
-     * @param  {number} cbType = CCB
-     * @param  {boolean} cond = false
-     * @param  {boolean} auto = true
-     * @param  {boolean} noUpdate = false
-     * @param  {number} facing = UP
+     * @param  {boolean} raw           whether the command will be parsed later
+     * @param  {number} cbType         command block type
+     * @param  {boolean} cond          is it conditional
+     * @param  {boolean} auto          is it auto:1b
+     * @param  {boolean} noUpdate      is it UpdateLastExecution:0b
+     * @param  {number} facing         the direction of the command block
      */
     constructor(command, lineNum, coor, raw = false, cbType = CCB, cond = false, auto = true, noUpdate = false, facing = UP) {
         this.command = command;
@@ -130,7 +134,7 @@ class CommandBlock {
             try {
                 command = runner.parseCommand(command);
             } catch (err) {
-                throw new Error(`Error parsing command at line ${this.lineNum},\n` + err);
+                throw new Error(trans.translate("CommandParseLineError", this.lineNum, err));
             }
         }
         command = util.nbtString(command);

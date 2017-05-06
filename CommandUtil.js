@@ -1,3 +1,6 @@
+/** @module CommandUtil*/
+
+
 const escapeP1 = /\\/g;
 const escapeP2 = /"/g;
 

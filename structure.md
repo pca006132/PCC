@@ -31,6 +31,12 @@ This file explain the project structure. Please be reminded to modify this if an
       (May generate multiple 'one command' if the number of characters exceeds the limit)
   + CommandUtil:
     + Functions for string NBT, etc.
+  + CommandModule:
+    + Store module, filter modules
+  + Options.json:
+    + Options of the compiler
+  + Translate & TranslateStrings.json
+    + Translations for the outputs of the compiler
   + App:
     + Handle parameters
     + Handle options

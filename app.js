@@ -15,8 +15,8 @@ function initializeDirectory() {
     //sadly we have to use sync
 
     //ensure the output folders are here
-    mkdirSync('./out');
-    mkdirSync(`./out/${options.namespace}`);
+    mkdirSync('./output');
+    mkdirSync(`./output/${options.namespace}`);
 }
 
 c = new cb.CommandBlock("say hi", "1", [1, 2, 3]);

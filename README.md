@@ -1,5 +1,5 @@
 # Introduction
-PCC is a command compiler, we hope that it can be simple, easy to understand, and efficient to write.
+PCC is a command compiler written in JavaScript(Node.js), we hope that it can be easy to understand, and efficient to write.
 
 Features:
 + Simple syntax

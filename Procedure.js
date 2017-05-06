@@ -1,9 +1,24 @@
+/** @module Procedure*/
+
+
 const runner = require('./JsRunner.js');
 const fs = require('fs');
 const path = require('path');
 const options = require('./options.json');
 
+
+/**
+ * @class Procedure
+ * Handles advancement command module generation
+ */
 class Procedure {
+
+    /**
+     * constructor - New advancement module
+     *
+     * @param  {string} name name of the module
+     * @param  {boolean} requireLoop  whether the advancement is running once per tick, or just a procedure to call by others
+     */
     constructor(name, requireLoop = false) {
         this.name = name;
         this.content = {
@@ -32,6 +47,13 @@ class Procedure {
         }
     }
 
+
+    /**
+     * addCommand - Add Command to the procedure
+     *
+     * @param  {string} command command to add (with prefix)
+     * @param  {string} lineNum line number of the command
+     */
     addCommand(command, lineNum) {
         try {
             this.content.rewards.commands.push(parsePrefix(command));
@@ -40,10 +62,22 @@ class Procedure {
         }
     }
 
+
+    /**
+     * getJSON - Get the advancement JSON string
+     *
+     * @return {string}  JSON
+     */
     getJSON() {
         return JSON.stringify(this);
     }
 
+
+    /**
+     * saveToFile - Save the advancement JSON to file
+     *
+     * @param  {type} file_path
+     */
     saveToFile(file_path) {
 
         fs.writeFile(path.join(file_path, this.name + ".json"), this.getJSON(), "utf8", (err) => {
@@ -52,6 +86,13 @@ class Procedure {
     }
 }
 
+
+/**
+ * parsePrefix - Parse command in advancement procedure
+ *
+ * @param  {string} command
+ * @return {string} parsed command
+ */
 function parsePrefix(command) {
     if (command.startsWith("?:")) {
         //ask for adding objective 'stats'

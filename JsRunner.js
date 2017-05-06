@@ -1,8 +1,11 @@
+/** @module JsRunner*/
+
 const vm = require('vm');
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const options = require('./options.json');
+const trans = require('./Translate.js');
 
 //vm on this scope
 let scope = {
@@ -16,39 +19,74 @@ let scope = {
     }
 };
 
-const context = new vm.createContext(scope);
+let context = new vm.createContext(scope);
 
+
+/**
+ * resetScope - Reset Scope, cancel all the effect of running js.
+ * Used for parsing new files
+ */
+function resetScope() {
+    scope = {
+        CustomCommands: {
+            call: function (n) {
+                return `advancement grant @p only ${options.namespace}:${n} c`;
+            }
+        },
+        Annotations: {
+
+        }
+    };
+}
+
+
+/**
+ * evaluate - Evaluate scripts/expression
+ *
+ * @param  {string} expression
+ */
 function evaluate(expression) {
     let script = new vm.Script(expression);
     return script.runInContext(context);
 }
 
+
+/**
+ * loadFile - Load text file and run it as JavaScript. Support http, https and on disk file
+ *
+ * @param  {string} path file path. For http or https, please start with http:// or https://
+ */
 function loadFile(path) {
     if (path.startsWith("http://")) {
         http.get(path, response => {
             data = [];
             response.setEncoding('utf8');
             response.on('data', (chunk) => data.push(chunk));
-            //response.on('error', (err) => throw err);
-            response.on('end', () => console.log(data.join('')));
+            response.on('end', () => evaluate(data.join('')));
         });
     } else if (path.startsWith("https://")) {
         https.get(path, response => {
             data = [];
             response.setEncoding('utf8');
             response.on('data', (chunk) => data.push(chunk));
-            //response.on('error', (err) => throw err);
-            response.on('end', () => console.log(data.join('')));
+            response.on('end', () => evaluate(data.join('')));
         });
     } else {
         fs.readFile(path, 'utf8', (err, data) => {
             if (err) throw err;
-            console.log(data);
+            evaluate(data);
         });
     }
 }
 
-//parse inline functions
+/**
+ * parseLine - Parse #{} expressions inside the line.
+ * Template strings are not parsed.
+ * Comments are not allowed
+ *
+ * @param  {string} line
+ * @return {string} parsed line
+ */
 function parseLine(line) {
     output = [];
     let escape = false;
@@ -79,7 +117,7 @@ function parseLine(line) {
                 }
             } else {
                 if (line[i] == '/' && i + 1 < line.length) {
-                    throw new Error("Comments in inline expressions are not allowed.");
+                    throw new Error(trans.translate("CommentsNotAllowed"));
                 }
                 if (line[i] == '"' || line[i] == "'" || line[i] == '`') {
                     pairs.push(line[i]);
@@ -94,14 +132,14 @@ function parseLine(line) {
                     if (pairs.length > 0) {
                         let c = pairs.pop();
                         if ((c == '[' && line[i] != ']') || (c == '{' && line[i] != '}') || (c == '(' && line[i] != ')')) {
-                            throw new Error("Imbalance bracket at " + i.toString());
+                            throw new Error(trans.translate("ImbalanceBrackets", i));
                         }
                     } else if (line[i] == '}') {
                         inExp = false;
                         let result = evaluate(line.substring(tempStart, i)).toString();
                         output.push(result);
                     } else {
-                        throw new Error("Imbalance bracket at " + i.toString());
+                        throw new Error(trans.translate("ImbalanceBrackets", i));
                     }
                 }
             }
@@ -126,15 +164,19 @@ function parseLine(line) {
             output.push(line[i]);
         }
     }
-    if (jsEscape) {
-        throw new Error("Invalid escape at the end of line");
-    }
     if (inExp) {
-        throw new Error("Not terminated expression at the end of line");
+        throw new Error(trans.translate("ExpNotTerminated"));
     }
     return output.join('');
 }
 
+
+/**
+ * parseCommand - Parse custom commands and inline expression
+ *
+ * @param  {string} command
+ * @return {string} parsed command
+ */
 function parseCommand(command) {
     command = parseLine(command);
 
@@ -160,3 +202,4 @@ exports.evaluate = evaluate;
 exports.loadFile = loadFile;
 exports.parseLine = parseLine;
 exports.parseCommand = parseCommand;
+exports.resetScope = resetScope;

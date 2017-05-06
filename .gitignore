@@ -50,4 +50,5 @@ Temporary Items
 *.tern-project
 
 # Program output
+output/
 out/

@@ -1,0 +1,196 @@
+{
+    "CommandParseLineError": {
+        "en": [
+            "Error parsing command at line ",
+            "\n"
+        ],
+        "tc": [
+            "解析第",
+            "行命令時出現錯誤:\n"
+        ],
+        "sc": [
+            "解析第",
+            "行命令时出现错误:\n"
+        ]
+    },
+    "InvalidDirectionError": {
+        "en": [
+            "Invalid Direction: "
+        ],
+        "tc": [
+            "未知/錯誤方向: "
+        ],
+        "sc": [
+            "未知/错误方向: "
+        ]
+    },
+
+    "CommentsNotAllowed": {
+        "en": [
+            "Comments are not allowed in inline expression."
+        ],
+        "tc": [
+            "行內表達式不容許出現注釋"
+        ],
+        "sc": [
+            "行内表达式不容许出现注释"
+        ]
+    },
+    "ImbalanceBrackets": {
+        "en": [
+            "Imbalance braces/brackets/parentheses at char "
+        ],
+        "tc": [
+            "括號不平衡, 在字符"
+        ],
+        "sc": [
+            "括号不平衡, 在字符"
+        ]
+    },
+    "ExpNotTerminated": {
+        "en": [
+            "Not terminated expression at the end of lin"
+        ],
+        "tc": [
+            "表達式直至行末仍未完結"
+        ],
+        "sc": [
+            "表达式直至行末仍未完结"
+        ]
+    },
+
+    "MixedTabAndSpaces": {
+        "en": [
+            "Mixed use of tab and spaces"
+        ],
+        "tc": [
+            "混合使用tab與空格"
+        ],
+        "sc": [
+            "混合使用tab与空格"
+        ]
+    },
+    "IndentLevel":{
+        "en": [
+            "Invalid indent"
+        ],
+        "tc": [
+            "錯誤縮排"
+        ],
+        "sc": [
+            "错误缩排"
+        ]
+    },
+
+    "AtLine": {
+        "en": [
+            "At line ",
+            ",\n"
+        ],
+        "tc": [
+            "第",
+            "行,\n"
+        ],
+        "sc": [
+            "第",
+            "行,\n"
+        ]
+    },
+    "MissEndScript": {
+        "en": [
+            "Missing '#end script'"
+        ],
+        "tc": [
+            "沒有'#end script'"
+        ],
+        "sc": [
+            "没有'#end script'"
+        ]
+    },
+    "MissEndComment": {
+        "en": [
+            "Missing end of multiline comment(*/)"
+        ],
+        "tc": [
+            "沒有關閉多行注釋(*/)"
+        ],
+        "sc": [
+            "没有关闭多行注释(*/)"
+        ]
+    },
+    "LoadFile": {
+        "en": [
+            "Error loading script ",
+            ",\n"
+        ],
+        "tc": [
+            "在加載腳本",
+            "時出現錯誤,\n"
+        ],
+        "sc": [
+            "在加载脚本",
+            "时出现错误,\n"
+        ]
+    },
+    "LoadEmbed": {
+        "en": [
+            "Error running embedded script,\n"
+        ],
+        "tc": [
+            "在執行腳本時出現錯誤,\n"
+        ],
+        "sc": [
+            "在执行脚本时出现错误,\n"
+        ]
+    },
+    "RunCommand":{
+        "en": [
+            "Error running #run command, at line ",
+            ",\n"
+        ],
+        "tc": [
+            "在執行'#run'命令時出現錯誤, 在第",
+            "行,\n"
+        ],
+        "sc": [
+            "在执行'#run'命令时出现错误, 在第",
+            "行,\n"
+        ]
+    },
+
+    "Error": {
+        "en": [
+            "An unknown error has occured."
+        ],
+        "tc": [
+            "發生了一個未知的錯誤"
+        ],
+        "sc": [
+            "发生了一个未知的错误"
+        ]
+    },
+    "NoTranslation": {
+        "en": [
+            "No translation for "
+        ],
+        "tc": [
+            "沒有",
+            "的翻譯"
+        ],
+        "sc": [
+            "没有",
+            "的翻译"
+        ]
+    },
+    "UnknownKeyError": {
+        "en": [
+            "Unknown key name of: "
+        ],
+        "tc": [
+            "未知鍵: "
+        ],
+        "sc": [
+            "未知键: "
+        ]
+    }
+}
