@@ -5,14 +5,16 @@ const data = require('./TranslateStrings.json');
 
 
 /**
- * getTranslated - Get translation
+ * getTranslated - Get translation.
  * Let the items in the list of translation string in JSON be a,
- * let the items in the options be b
+ * let the items in the options be b.
  * There would be 4 possible combinations depends on the number of items
- * 1. ababab (number of a = number of b)
- * 2. ababa (number of a = number of b + 1)
- * 3. babab (number of a + 1 = number of b)
- * 4. Error (for other cases)
+ * <ol>
+ * <li> ababab (number of a = number of b) </li>
+ * <li> ababa (number of a = number of b + 1) </li>
+ * <li> babab (number of a + 1 = number of b) </li>
+ * <li> Error (for other cases) </li>
+ * </ol>
  *
  * @param  {string} name     Key name of the string
  * @param  {...Object} options Insert options into intervals between TranslatedStrings.
