@@ -1,0 +1,35 @@
+#module test
+    #procedure hi
+        say hi
+        ?:
+            say test
+            say test2
+        say end of conditional
+    say end of procedure #{this.CurrentCoor}
+
+#module main
+    @mark test
+    icb:/say 1
+    #chain ~2 ~ ~ +x loop
+        say hi
+        say bye
+        say 1
+
+    #module init
+        scoreboard objectives add test dummy
+        scoreboard player set @s test 0
+
+    #procedure testloop loop
+        scoreboard players add @s[score_test=9] test 1
+        ?:say +1s
+        !:remove testloop
+
+    #chain ~3 ~ ~
+        test 1
+
+#script
+CustomCommands['test'] = function (str) {
+    this.console.log(str);
+    return "say test";
+}
+#end script

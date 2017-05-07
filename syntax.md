@@ -58,6 +58,12 @@ Using advancements, we can call procedures and return them back to their origina
 Procedures can be part of a module, but you **cannot declare modules** inside a procedure. Commands inside procedures have to be **indented for 1 more level**.
 
 Also, you **cannot use annotations and some prefixes** inside procedures, such as generating marker entities, get stats, as the procedure is not executed by command blocks, but by the player instead.
+
+Prefix users can use in procedure:
++ ?: conditional
++ !: inverse of conditional (run when failed)
++ r: raw string after it
+
 ```
 #procedure (name) [loop]
     //commands etc.
@@ -71,7 +77,7 @@ Also, you **cannot use annotations and some prefixes** inside procedures, such a
 ```
 
 > For the loop, it would use the arbitrary_player_tick
-> 
+>
 > The advancement will be revoked, users doesn't have to write that.
 
 ### Run procedure
@@ -86,6 +92,16 @@ run (name)
 run test
 ```
 
+### Remove procedure
+> Useful in loops, as you need to terminate the loop.
+
+```
+remove (name)
+
+//Example:
+remove test
+```
+
 ## Chain
 By default, commands are stored in a straight chain towards +x direction. (Start at 1 0 0)
 
@@ -93,13 +109,13 @@ Users can start a new chain, with certain special properties. Commands in them w
 ```
 #chain (x) (y) (z) [direction1] [loop]
 //or
-#chain (x) (y) (z) [direction1] [wrap-(direction2)-(wrap count)]
+#chain (x) (y) (z) [direction1] [wrap,(direction2),(wrap count)]
 
 //example
 #chain 1 2 3 +x loop
     say this is in a loop
     say this is also in a loop
-#chain ~ ~1 ~ +x wrap-+z-20
+#chain ~ ~1 ~ +x wrap,+z,20
 ```
 
 Parameters:
@@ -130,14 +146,15 @@ Wrap:
 ## Command properties
 Command properties are defined by their prefix:
 + by default: UpdateLastExecution:1b, auto:1b, none conditional, chain command block
-+ r: auto:1b, repeating command block
-+ i: auto:0b, impulse command block
++ rcb: auto:1b, repeating command block
++ icb: auto:0b, impulse command block
 + ?: conditional
 + 1: auto:1b
 + 0: auto:0b
 + r: raw command(command after it will not be further parsed)
 
-> Only ?: and r: prefixes are allowed in procedures.
+> Only ?: and r: prefixes are allowed in procedures.  
+> One more prefix for procedures: !:, which is the inverse of conditional(run when the previous command fail).
 
 You can inherit prefixes by writing a line with prefixes **only**, and commands which need to inherit them have to be indented for 1 more level.
 ```
@@ -223,8 +240,8 @@ Order:
 1. load from URL
 2. embed script
 3. #run command
-4. custom commands/annotation
-5. inline expression
+4. annotation
+5. custom commands/inline expression
 
 ### Load from URL
 Users can load scripts from URL, to declare variable, define useful functions, add custom commands/annotation etc.

@@ -40,25 +40,24 @@ class Procedure {
             };
             //Revoke the tick trigger, so it can be triggered at the next tick
             //But for the "impossible", it will not be revoked to allow it to run at next tick
-            this.content.rewards.commands.push(`advancement revoke @p only ${options.namespace}:${name} r`);
+            this.content.rewards.commands.push(`advancement revoke @s only ${options.namespace}:${name} r`);
         } else {
             //Revoke the "impossible" trigger, to allow it to be called by itself/others
-            this.content.rewards.commands.push(`advancement revoke @p only ${options.namespace}:${name} c`);
+            this.content.rewards.commands.push(`advancement revoke @s only ${options.namespace}:${name}`);
         }
     }
 
 
     /**
-     * addCommand - Add Command to the procedure
+     * addElement - Add Command to the procedure
      *
-     * @param  {string} command command to add (with prefix)
-     * @param  {string} lineNum line number of the command
+     * @param  {Line} command command to add (with prefix)
      */
-    addCommand(command, lineNum) {
+    addElement(line) {
         try {
-            this.content.rewards.commands.push(parsePrefix(command));
+            this.content.rewards.commands.push(parsePrefix(line.content));
         } catch (err) {
-            throw new Error(`At line ${lineNum}, \n${err}`);
+            throw new Error(`At line ${line.lineNum}, \n${err}`);
         }
     }
 
@@ -69,7 +68,7 @@ class Procedure {
      * @return {string}  JSON
      */
     getJSON() {
-        return JSON.stringify(this);
+        return JSON.stringify(this.content);
     }
 
 
@@ -102,7 +101,7 @@ function parsePrefix(command) {
         //ask for adding objective 'stats'
         command = parsePrefix(command.substring(2));
         return "execute @s[score_stats=0] ~ ~ ~ " + command;
-    } else if (command.startsWith("?:")) {
+    } else if (command.startsWith("r:")) {
         return command;
     } else {
         return runner.parseCommand(command);

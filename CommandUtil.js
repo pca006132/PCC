@@ -53,6 +53,8 @@ function needEscape(text) {
  * @return {string} NBT text
  */
 function nbtString(text) {
+    if (text.length == 0)
+        return '""';
     if (needEscape(text))
         return '"' + escape(text) + '"';
     return text;

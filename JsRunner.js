@@ -8,16 +8,8 @@ const options = require('./options.json');
 const trans = require('./Translate.js');
 
 //vm on this scope
-let scope = {
-    CustomCommands: {
-        call: function (n) {
-            return `advancement grant @p only ${options.namespace}:${n} c`;
-        }
-    },
-    Annotations: {
-
-    }
-};
+let scope = {};
+resetScope();
 
 let context = new vm.createContext(scope);
 
@@ -30,13 +22,64 @@ function resetScope() {
     scope = {
         CustomCommands: {
             call: function (n) {
-                return `advancement grant @p only ${options.namespace}:${n} c`;
+                return `advancement grant @s only ${options.namespace}:${n}`;
+            },
+            remove: function(n) {
+                return `advancement revoke @s only ${options.namespace}:${n}`;
             }
         },
         Annotations: {
+            label: function (n) {
+                if (Object.keys(this.parent.Labels).indexOf(n) != -1) {
+                    throw new Error(trans.translate("DuplicateLabel", n));
+                }
+                let coor = this.parent.CurrentCoor;
+                this.parent.Labels[n] = {x: coor.x, y: coor.y, z: coor.z} ;
+            },
+            mark: function (n) {
+                let parts = n.split(' ');
+                let name = parts[0];
+                let tags = parts.length > 1? parts.slice(1) : [];
+                this.parent.InitCommands.push(`summon area_effect_cloud ~${this.parent.CurrentCoor.x} ~${this.parent.CurrentCoor.y} ~${this.parent.CurrentCoor.z}`+
+                    ` {CustomName:${name},Duration:2147483647,Tags:[${tags.join(',')}]}`);
+            },
+            stats: function (n) {
+                let parts = n.split(' ');
+                if (parts.length != 3) {
+                    throw new Error(trans.translate("StatsPara"));
+                }
+                let stat = parts[0];
+                let player = parts[1];
+                let obj = parts[2];
 
+                this.parent.LastCommands.push(`scoreboard players set ${player} ${obj} 0`);
+                this.parent.LastCommands.push(`stats block  ~${this.parent.CurrentCoor.x} ~${this.parent.CurrentCoor.y} ~${this.parent.CurrentCoor.z} set ${stat} ${player} ${obj}`);
+            }
+
+        },
+        InitCommands: [
+
+        ],
+        ComamndBlockCommands: [
+
+        ],
+        LastCommands: [
+
+        ],
+        Labels: {
+
+        },
+        CurrentCoor: {
+            x: 0,
+            y: 2,
+            z: 0
         }
     };
+
+    scope.Annotations.parent = scope;
+    scope.CustomCommands.parent = scope;
+    scope.Annotations.console = console;
+    scope.CustomCommands.console = console;
 }
 
 
@@ -59,14 +102,14 @@ function evaluate(expression) {
 function loadFile(path) {
     if (path.startsWith("http://")) {
         http.get(path, response => {
-            data = [];
+            let data = [];
             response.setEncoding('utf8');
             response.on('data', (chunk) => data.push(chunk));
             response.on('end', () => evaluate(data.join('')));
         });
     } else if (path.startsWith("https://")) {
         https.get(path, response => {
-            data = [];
+            let data = [];
             response.setEncoding('utf8');
             response.on('data', (chunk) => data.push(chunk));
             response.on('end', () => evaluate(data.join('')));
@@ -88,13 +131,13 @@ function loadFile(path) {
  * @return {string} parsed line
  */
 function parseLine(line) {
-    output = [];
+    let output = [];
     let escape = false;
     let jsEscape = false;
     let inString = false;
     let inExp = false;
     let tempStart = -1;
-    pairs = [];
+    let pairs = [];
     for (let i = 0; i < line.length; i++) {
         if (inExp) {
             if (inString) {
@@ -181,15 +224,15 @@ function parseCommand(command) {
     command = parseLine(command);
 
     //get command name(before the first space char)
-    spaceIndex = command.indexOf(' ');
+    let spaceIndex = command.indexOf(' ');
 
     //if space exist, and there is more than 1 char before the space char
     if (spaceIndex > 0) {
-        commandName = command.substring(0,spaceIndex);
+        let commandName = command.substring(0,spaceIndex);
         if (commandName[0] === '/' && commandName.length > 1) {
             commandName = commandName.substring(1);
         }
-        commandIndex = Object.keys(scope.CustomCommands).indexOf(commandName);
+        let commandIndex = Object.keys(scope.CustomCommands).indexOf(commandName);
         if (commandIndex > -1) {
             //Exist such custom command
             command = scope.CustomCommands[commandName](command.substring(spaceIndex+1));
@@ -203,3 +246,4 @@ exports.loadFile = loadFile;
 exports.parseLine = parseLine;
 exports.parseCommand = parseCommand;
 exports.resetScope = resetScope;
+exports.scope = scope;

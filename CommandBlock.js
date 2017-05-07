@@ -3,7 +3,7 @@
 
 const runner = require('./JsRunner.js');
 const util = require('./CommandUtil.js');
-const tran = require('./Translate.js');
+const trans = require('./Translate.js');
 
 //directions
 const UP = 0;
@@ -48,7 +48,7 @@ function directionToState(direction) {
 function typeToName(cbType) {
     switch (cbType) {
         case ICB:
-            return "impulse_command_block";
+            return "command_block";
         case CCB:
             return "chain_command_block";
         case RCB:
@@ -84,10 +84,81 @@ function stringToDirection(direction) {
 
 
 /**
+ * reverseDirection - Reverse input direction
+ *
+ * @param  {number} direction
+ * @return {number} reversed direction
+ */
+function reverseDirection(direction) {
+    switch (direction) {
+        case DOWN:
+            return UP;
+        case UP:
+            return DOWN;
+        case EAST:
+            return WEST;
+        case WEST:
+            return EAST;
+        case SOUTH:
+            return NORTH;
+        case NORTH:
+            return SOUTH;
+    }
+    throw new Error(trans.translate("InvalidDirectionError", direction));
+}
+
+/**
  * representing a command block
  * @class
  */
 class CommandBlock {
+
+    /**
+     * @static getCommandBlock - Parse line into command block
+     *
+     * @param  {type} command
+     * @param  {type} lineNum
+     * @param  {type} coor
+     * @param  {type} facing
+     * @param  {type} noUpdate
+     * @return {CommandBlock}
+     */
+    static getCommandBlock(command, lineNum, coor, facing, noUpdate = false) {
+        let raw = false;
+        let cbType = CCB;
+        let cond = false;
+        let auto = true;
+
+        let cont = true;
+        while (cont) {
+            if (command.startsWith("rcb:")) {
+                cbType = RCB;
+                auto = true;
+                command = command.substring(4);
+            } else if (command.startsWith("icb:")) {
+                cbType = ICB;
+                auto = false;
+                command = command.substring(4);
+            } else if (command.startsWith("?:")) {
+                cond = true;
+                command = command.substring(2);
+            } else if (command.startsWith("1:")) {
+                auto = true;
+                command = command.substring(2);
+            } else if (command.startsWith("0:")) {
+                auto = false;
+                command = command.substring(2);
+            } else if (command.startsWith("r:")) {
+                raw = true;
+                command = command.substring(2);
+                cont = false;
+            } else {
+                cont = false;
+            }
+        }
+
+        return new CommandBlock(command, lineNum, coor, raw, cbType, cond, auto, noUpdate, facing);
+    }
 
     /**
      * constructor - constructor of a command block
@@ -193,3 +264,13 @@ exports.directionToState = directionToState;
 exports.typeToName = typeToName;
 exports.stringToDirection = stringToDirection;
 exports.CommandBlock = CommandBlock;
+exports.CCB = CCB;
+exports.RCB = RCB;
+exports.ICB = ICB;
+exports.UP = UP;
+exports.DOWN = DOWN;
+exports.EAST = EAST;
+exports.WEST = WEST;
+exports.SOUTH = SOUTH;
+exports.NORTH = NORTH;
+exports.reverseDirection = reverseDirection;

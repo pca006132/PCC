@@ -1,4 +1,5 @@
 {
     "namespace": "pcc",
-    "language": "en"
+    "language": "en",
+    "out": "output"
 }
