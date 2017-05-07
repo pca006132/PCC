@@ -1,18 +1,20 @@
 {
-    "name": "PCC",
-    "description": "A simple, but powerful command compiler for Minecraft command players.",
-    "version":"1.0.0",
-    "author":[
-        {
-            "name":"pca006132",
-            "email":"john.lck40@gmail.com"
-        }
-    ],
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/pca006132/pcc.git"
-    },
-    "bugs": {
-        "url": "https://github.com/pca006132/pcc/issues"
-    }
+  "name": "minecraft-pcc",
+  "description": "A simple, but powerful command compiler for Minecraft command players.",
+  "version": "0.0.2",
+  "author": "pca006132 <john.lck40@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pca006132/pcc.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pca006132/pcc/issues"
+  },
+  "homepage": "https://github.com/pca006132/pcc#readme",
+  "main": "pcc.js",
+  "keywords": [
+    "Minecraft",
+    "Command"
+  ],
+  "license": "MIT"
 }
