@@ -9,3 +9,4 @@ Features:
 Files:
 + [Syntax](syntax.md)
 + [Project Structure](structure.md)
++ [JavaScript API(for in file scripts)](JsAPI.md)
