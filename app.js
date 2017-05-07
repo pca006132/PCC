@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const fs = require('fs');
 const options = require('./options.json');
 const runner = require('./JsRunner.js');
