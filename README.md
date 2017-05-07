@@ -8,23 +8,6 @@ PCC is a command compiler written in JavaScript(Node.js), we hope that it can be
 + Define custom annotation, custom commands.
 + Let users to choose which module to compile. (2 options: default compile all modules, compile a set of modules depends on the command line parameter)
 
-## Install
-First, install node.js, then run:
-
-```
-npm install minecraft-pcc -g
-```
-
-## Usage:
-For parsing all modules, run
-```
-pcc (file name)
-```
-
-For parsing some modules **ONLY** (Commands not belong to any module will still be run), run
-```
-pcc (file name) (module1) (module2) (module3) ...
-```
 
 ## Options:
 see the options.json
