@@ -42,7 +42,7 @@ fs.readFile(fileName, "utf8", (err, data) =>{
     if (err)
         throw err;
     parser.parse(data);
-    let p = new procedure.Procedure("test", false);
+    let p = new procedure.Procedure("pcc:test", true, false, false);
     for (let c of runner.scope.InitCommands) {
         p.addElement(new parser.Line("NA", c, 0));
     }
@@ -52,5 +52,7 @@ fs.readFile(fileName, "utf8", (err, data) =>{
     for (let c of runner.scope.LastCommands) {
         p.addElement(new parser.Line("NA", c, 0));
     }
-    p.saveToFile(options.out);
+    //Avoid empty advancement
+    if (p.content.rewards.length > 1)
+        p.saveToFile(options.out);
 });

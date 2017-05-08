@@ -52,54 +52,80 @@ Modules can be nested. Content of modules has to be **indented** for 1 more leve
 > For modules named 'init' or 'last', init commands will be executed before placing command blocks/entity markers. Whereas modules named last will be executed last, after placing command blocks/entity markers.  
 
 ## Procedure
-Using advancements, we can call procedures and return them back to their original position and continue the commands execution **in 1 game tick**. PCC will allow you to generate that and name the module.
+Using advancements, we can call procedures and return them back to their original position and continue the commands execution **all in 1 game tick**. PCC will allow you to generate that and name the module.
 
 ### Define procedure
 Procedures can be part of a module, but you **cannot declare modules** inside a procedure. Commands inside procedures have to be **indented for 1 more level**.
 
-Also, you **cannot use annotations and some prefixes** inside procedures, such as generating marker entities, get stats, as the procedure is not executed by command blocks, but by the player instead.
+Also, you **cannot use most of the annotations and some prefixes** inside procedures, such as generating marker entities, get stats, as the procedure is not executed by command blocks, but by the player instead.
 
 Prefix users can use in procedure:
 + ?: conditional
 + !: inverse of conditional (run when failed)
 + r: raw string after it
 
+Annotation that users can use in procedure:
++ `@criteria "criteria_name": {criteria}`: Add a criteria to the advancement. (Need to accomplish **all criteria**)
+
+> Note that for this Annotation, users can split it into multiple lines with indentation, and users can use #{} to generate the JSON.  
+> Comments(following the pcc format) will **NOT** be parsed as a part of the JSON.  
+> However, note that the line with the same indentation as the first line would be regarded as new command/annotation.
+>
+> Procedure names will be converted to lower case as Minecraft does.
+>
+> Name of the criteria is the same as its name, such as 'impossible' in the line `#procedure`  
+> For the main_tick, it would use the `arbitrary_player_tick` criteria.  
+> Tick and main_tick cannot co-exist, main_tick will overwrite tick.  
+> Note that for impossible, the advancement will be revoked immediately. For tick and main_tick, the criteria itself will be revoked.
+>
+> For procedures that didn't specify any criteria, it would use impossible as default.  
+
 ```
-#procedure (name) [loop]
+#procedure ([namespace:]name) [impossible] [tick] [main_tick]
     //commands etc.
 
 //Example:
 #procedure test
+    @criteria "InBlock":{
+            //This comment will not be parsed
+            "trigger": "minecraft:placed_block",
+            "conditions":{
+                "block": "minecraft:stone"
+            }
+        }
+
     /say test
 
-#procedure main loop
-    /say this is run in a loop
+#procedure main main_tick
+    /say this is run in a loop(which only 1 player can execute)
 ```
-
-> For the loop, it would use the arbitrary_player_tick
->
-> The advancement will be revoked, users doesn't have to write that.
 
 ### Run procedure
 > It is implemented by PCC custom commands. See below for more information.
 >
 > Caution: be careful to use this inside procedure, it could cause huge problems as it may cause infinite loop.
 
+> Can use `this` to refer to current advancemnet namespace:name.
+
 ```
-run (name)
+run (namespace:name [criteria])
 
 //Example:
-run test
+run pcc:test
+run this
 ```
 
 ### Remove procedure
 > Useful in loops, as you need to terminate the loop.
 
+> Can use `this` to refer to current advancemnet namespace:name
+
 ```
-remove (name)
+remove (namespace:name [criteria])
 
 //Example:
-remove test
+remove pcc:test
+remove this InBlock
 ```
 
 ## Chain

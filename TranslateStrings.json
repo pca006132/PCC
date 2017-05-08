@@ -82,6 +82,45 @@
         ]
     },
 
+    "CannotCreateNamespace": {
+        "en": [
+            "Cannot create folder for namespace "
+        ],
+        "tc": [
+            "不能創建存放命名空間",
+            "的文件夾"
+        ],
+        "sc": [
+            "不能创建存放命名空间",
+            "的文件夹"
+        ]
+    },
+    "CriteriaError": {
+        "en": [
+            "Criteria error at line ",
+            ",\n"
+        ],
+        "tc": [
+            "Criteria準則錯誤, 行",
+            ",\n"
+        ],
+        "sc": [
+            "Criteria准则错误, 在第",
+            "行,\n"
+        ]
+    },
+    "ProcedurePara": {
+        "en": [
+            "Wrong parameter of #procedure in line "
+        ],
+        "tc": [
+            "錯誤#procedure參數, 行"
+        ],
+        "sc": [
+            "错误#procedure参数, 行"
+        ]
+    },
+
     "AtLine": {
         "en": [
             "At line ",
@@ -167,19 +206,6 @@
         ],
         "sc": [
             "错误缩排, 第",
-            "行"
-        ]
-    },
-    "ProcedureAnnotation": {
-        "en": [
-            "Annotations are not allowed in procedure, at line "
-        ],
-        "tc": [
-            "程序裡不容許出現註解, 在第",
-            "行"
-        ],
-        "sc": [
-            "过程里不容许出现注解, 在第",
             "行"
         ]
     },

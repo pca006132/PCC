@@ -6,6 +6,7 @@ PCC is a command compiler written in JavaScript(Node.js), we hope that it can be
 + Compile advancement modules, chains, normal commands. (Currently all outputs are advancement files)
 + Run javascripts when compiling, so users can generate commands on the fly. (Can change the parameters easily later)
 + Define custom annotation, custom commands.
++ Simple syntax to generate advancements for detection.
 + Let users to choose which module to compile. (2 options: default compile all modules, compile a set of modules depends on the command line parameter)
 
 ## Install
@@ -25,6 +26,8 @@ For parsing some modules **ONLY** (Commands not belong to any module will still 
 ```
 pcc (file name) (module1) (module2) (module3) ...
 ```
+
+Drag the folders(namespace) to `(save)/data/advancements`
 
 ## Options:
 see the options.json

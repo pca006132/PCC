@@ -71,6 +71,10 @@ What you can access:
 + `this.parent.LastCommands`: List of commands, will run at last(importing the file into minecraft)
 + `this.parent.Labels`: `{key: {coordinate}}`. Coordinates of the labeled command blocks. The coordinate is the same as the format below.
 + `this.parent.CurrentCoor`: `{x: number, y: number, z: number}`. Coordinate of the next command block.
++ `this.parent.CurrentAdvancement`: Current advancement object.
+    + `.name`: advancement name
+    + `.namespace`: advancement namespace
+    + `.content`: advancement content (criteria, rewards etc.)
 + `this.console.log`: log string to the console output.
 
 ## Define Custom Commands
@@ -89,4 +93,8 @@ What you can access:
 + `this.parent.LastCommands`: List of commands, will run at last(importing the file into minecraft)
 + `this.parent.Labels`: `{key: {coordinate}}`. Coordinates of the labeled command blocks. The coordinate is the same as the format below.
 + `this.parent.CurrentCoor`: `{x: number, y: number, z: number}`. Coordinate of the next command block.
++ `this.parent.CurrentAdvancement`: Current advancement object.
+    + `.name`: advancement name
+    + `.namespace`: advancement namespace
+    + `.content`: advancement content (criteria, rewards etc.)
 + `this.console.log`: log string to the console output.

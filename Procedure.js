@@ -5,6 +5,7 @@ const runner = require('./JsRunner.js');
 const fs = require('fs');
 const path = require('path');
 const options = require('./options.json');
+const trans = require('./Translate.js');
 
 
 /**
@@ -19,45 +20,70 @@ class Procedure {
      * @param  {string} name name of the module
      * @param  {boolean} requireLoop  whether the advancement is running once per tick, or just a procedure to call by others
      */
-    constructor(name, requireLoop = false) {
+    constructor(name, impossible, tick, loop) {
+        this.namespace = options.namespace;
+        let index = name.indexOf(':');
+        if (index > -1) {
+            this.namespace = name.substring(0, index);
+            name = name.substring(index+1);
+        }
         this.name = name;
         this.content = {
             criteria: {
-                c: {
-                    trigger: "minecraft:impossible"
-                }
             },
             rewards: {
                 commands: [
-
                 ]
             }
         };
 
-        if (requireLoop) {
-            this.content.criteria["r"] = {
+        if (impossible) {
+            this.content.criteria["impossible"] = {
+                trigger: "minecraft:impossible"
+            };
+            if (!tick && !loop)
+                this.content.rewards.commands.push(`advancement revoke @s only ${this.namespace}:${name}`);
+        }
+        if (loop) {
+            this.content.criteria["main_loop"] = {
                 trigger: "minecraft:arbitrary_player_tick"
             };
             //Revoke the tick trigger, so it can be triggered at the next tick
             //But for the "impossible", it will not be revoked to allow it to run at next tick
-            this.content.rewards.commands.push(`advancement revoke @s only ${options.namespace}:${name} r`);
-        } else {
-            //Revoke the "impossible" trigger, to allow it to be called by itself/others
-            this.content.rewards.commands.push(`advancement revoke @s only ${options.namespace}:${name}`);
+            this.content.rewards.commands.push(`advancement revoke @s only ${this.namespace}:${name} main_loop`);
+        } else if (tick) {
+            this.content.criteria["tick"] = {
+                trigger: "minecraft:tick"
+            };
+            this.content.rewards.commands.push(`advancement revoke @s only ${this.namespace}:${name} tick`);
         }
+        runner.scope.CurrentAdvancement = this;
     }
 
 
     /**
-     * addElement - Add Command to the procedure
+     * addElement - Add Command/Annotation to the procedure
      *
-     * @param  {Line} command command to add (with prefix)
+     * @param  {Line} line command/annotaion to add (with prefix)
      */
     addElement(line) {
+        if (line.content.startsWith("@criteria")) {
+            //Add criteria
+            let criteria = null;
+            try {
+                criteria = JSON.parse('{' + line.content.substring(10) + '}');
+            } catch (err) {
+                throw new Error(trans.translate("CriteriaError", line.lineNum, err));
+            }
+            let key = Object.keys(criteria)[0];
+            this.content.criteria[key] = criteria[key];
+            return;
+        }
+
         try {
             this.content.rewards.commands.push(parsePrefix(line.content));
         } catch (err) {
-            throw new Error(`At line ${line.lineNum}, \n${err}`);
+            throw new Error(trans.translate("AtLine", line.lineNum, err));
         }
     }
 
@@ -68,6 +94,13 @@ class Procedure {
      * @return {string}  JSON
      */
     getJSON() {
+        if (Object.keys(this.content.criteria).length == 0) {
+            //No criteria
+            this.content.criteria["impossible"] = {
+                trigger: "minecraft:impossible"
+            };
+            this.content.rewards.commands.splice(0, 0, `advancement revoke @s only ${this.namespace}:${this.name}`);
+        }
         return JSON.stringify(this.content);
     }
 
@@ -78,9 +111,11 @@ class Procedure {
      * @param  {type} file_path
      */
     saveToFile(file_path) {
-
-        fs.writeFile(path.join(file_path, this.name + ".json"), this.getJSON(), "utf8", (err) => {
-            if (err) throw err;
+        fs.mkdir(path.join(file_path, this.namespace), (err) => {
+            if (err && err.code !== 'EEXIST') throw new Error(trans.translate("CannotCreateNamespace", this.namespace));
+            fs.writeFile(path.join(file_path, this.namespace, this.name + ".json"), this.getJSON(), "utf8", (err) => {
+                if (err) throw err;
+            });
         });
     }
 }

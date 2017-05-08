@@ -1,4 +1,4 @@
-#module test
+#module test1
     #procedure hi
         say hi
         ?:
@@ -19,13 +19,35 @@
         scoreboard objectives add test dummy
         scoreboard player set @s test 0
 
-    #procedure testloop loop
+    #procedure testloop tick
         scoreboard players add @s[score_test=9] test 1
         ?:say +1s
         !:remove testloop
 
     #chain ~3 ~ ~
         test 1
+
+#module test
+    #procedure pca:test1 impossible
+        say hi
+    #procedure pca:test2 tick impossible
+        say should run on each tick for every player
+    #procedure pca:test3 main_loop
+        say should be the main loop
+    #procedure testblock
+        @criteria "InBlock":{
+                //This comment will not be parsed
+                "trigger": "minecraft:placed_block",
+                "conditions":{
+                    "block": "minecraft:stone"
+                }
+            }
+        remove this
+        /say block
+
+    #procedure testimpossible
+        /say this should also be impossible
+
 
 #script
 CustomCommands['test'] = function (str) {

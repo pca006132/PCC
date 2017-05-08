@@ -4,8 +4,8 @@ const vm = require('vm');
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
-const options = require('./options.json');
 const trans = require('./Translate.js');
+const options = require('./options.json');
 
 //vm on this scope
 let scope = {};
@@ -22,10 +22,20 @@ function resetScope() {
     scope = {
         CustomCommands: {
             call: function (n) {
-                return `advancement grant @s only ${options.namespace}:${n}`;
+                if (n.startsWith("this"))
+                    n = this.parent.CurrentAdvancement.namespace + ":" + this.parent.CurrentAdvancement.name + n.substring(5);
+                n = n.toLowerCase();
+                if (n.indexOf(":") == -1) //No namespace
+                    n = options.namespace + ":" + n;
+                return `advancement grant @s only ${n}`;
             },
             remove: function(n) {
-                return `advancement revoke @s only ${options.namespace}:${n}`;
+                if (n.startsWith("this"))
+                    n = this.parent.CurrentAdvancement.namespace + ":" + this.parent.CurrentAdvancement.name + n.substring(5);
+                n = n.toLowerCase();
+                if (n.indexOf(":") == -1) //No namespace
+                    n = options.namespace + ":" + n;
+                return `advancement revoke @s only ${n}`;
             }
         },
         Annotations: {
@@ -73,6 +83,9 @@ function resetScope() {
             x: 0,
             y: 2,
             z: 0
+        },
+        CurrentAdvancement: {
+
         }
     };
 

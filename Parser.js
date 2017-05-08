@@ -139,7 +139,7 @@ function parseLines(content) {
         try {
             indent = getIndent(raw_lines[i]);
         } catch (err) {
-            throw new Error(trans.translate("AtLine", i, err));
+            throw new Error(trans.translate("AtLine", (i+1), err));
         }
         let l = raw_lines[i].substring(indent * indentLength);
 
@@ -155,13 +155,13 @@ function parseLines(content) {
         m = scriptRun.exec(l);
         if (m) {
             runs.push([
-                new Line(i.toString(), l, indent),
+                new Line((i+1).toString(), l, indent),
                 lines.length
             ]);
             continue;
         }
 
-        lines.push(new Line(i.toString(), l, indent));
+        lines.push(new Line((i+1).toString(), l, indent));
     }
     if (inJs) {
         throw new Error(trans.translate("MissEndScript"));
@@ -187,7 +187,7 @@ function parseLines(content) {
             let results = runner.evaluate(runs[i][0].content.substring(5)).split(lineDelimiter);
             for (let j = results.length - 1; j >= 0; j--) {
                 let indent = getIndent(results[j]);
-                let l = new Line(runs[i][0].lineNum + "." + j.toString(), results[j].substring(indent*indentLength), indent + runs[i][0].indent);
+                let l = new Line(runs[i][0].lineNum + "." + (j+1).toString(), results[j].substring(indent*indentLength), indent + runs[i][0].indent);
                 lines.splice(runs[i][1], 0, l);
             }
         } catch (err) {
@@ -203,7 +203,11 @@ function parseSections(lines) {
     let sections = [baseChain];
 
     for (let l of lines) {
-        if (l.indent > sections.length) {
+        if (l.indent > sections.length &&
+            //Check if special case: annotation of procedure
+            !(sections.length > 2 && sections[sections.length - 1] instanceof Line &&
+                sections[sections.length - 2] instanceof procedure.Procedure && sections[sections.length - 1].content.startsWith("@criteria"))
+        ) {
             throw new Error(trans.translate("InvalidIndentLevel", l.lineNum));
         }
 
@@ -244,10 +248,7 @@ function parseSections(lines) {
         } else if (sections[sections.length - 1] instanceof procedure.Procedure) {
             if (l.content.startsWith("#")) {
                 throw new Error(trans.translate("InvalidIndentLevel", l.lineNum));
-            } else if (l.content.startsWith("@")) {
-                throw new Error(trans.translate("ProcedureAnnotation", l.lineNum));
             }
-
             //check if prefix only
             if (prefixOnly.exec(l.content)) {
                 sections.push(l.content);
@@ -259,9 +260,27 @@ function parseSections(lines) {
                 sections.push(new CommandModule.CommandModule(l.content.substring(8)));
             } else if (l.content.startsWith("#procedure")) {
                 let c = l.content.substring(11);
-                if (l.content.trim().endsWith(" loop"))
-                    c = c.substr(0, c.length - 5);
-                sections.push(new procedure.Procedure(c, l.content.trim().endsWith(" loop")));
+                let p = c.split(" ");
+                let impossible = false;
+                let tick = false;
+                let main_loop = false;
+                for (let i = 1; i < p.length; i++) {
+                    switch (p[i]) {
+                        case "impossible":
+                            impossible = true;
+                            break;
+                        case "tick":
+                            tick = true;
+                            break;
+                        case "main_loop":
+                            main_loop = true;
+                            break;
+                        default:
+                            throw new Error(trans.translate("ProcedurePara", l.lineNum));
+                    }
+                }
+
+                sections.push(new procedure.Procedure(p[0], impossible, tick, main_loop));
             } else if (l.content.startsWith("#chain")) {
                 try {
                     l.content = runner.parseLine(l.content);
