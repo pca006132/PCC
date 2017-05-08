@@ -34,6 +34,8 @@ see the options.json
 
 out is the file to put the output advancements.
 
+To disable the update checker(which will run by default every time you run pcc), change the `autoCheckUpdate` to false.
+
 ## Translation
 Currently there are only errors translations. see the TranslateStrings.json.
 
