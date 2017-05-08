@@ -1,11 +1,11 @@
 # Introduction
-PCC is a command compiler written in JavaScript(Node.js), we hope that it can be easy to understand, and efficient to write.
+PCC is a command compiler written in JavaScript(Node.js), focused on simplicity and effiency.
 
 ## Features:
 + Simple syntax, allows users to focus on the commands.
 + Compile advancement modules, chains, normal commands. (Currently all outputs are advancement files)
 + Run javascripts when compiling, so users can generate commands on the fly. (Can change the parameters easily later)
-+ Define custom annotation, custom commands.
++ Define custom annotations and custom commands.
 + Simple syntax to generate advancements for detection.
 + Let users to choose which module to compile. (2 options: default compile all modules, compile a set of modules depends on the command line parameter)
 
