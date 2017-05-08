@@ -1,5 +1,6 @@
 {
     "namespace": "pcc",
     "language": "en",
-    "out": "output"
+    "out": "output",
+    "autoCheckUpdate": true
 }
