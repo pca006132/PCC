@@ -57,6 +57,8 @@ var a = 1;
 
 
 ## Define annotations
+> Refer to the scope.Annotations in JsRunner.js for examples.
+
 ```
 Annotations['your annotation name'] = function (str) {
     //function
@@ -78,6 +80,8 @@ What you can access:
 + `this.console.log`: log string to the console output.
 
 ## Define Custom Commands
+> Refer to the scope.CustomCommands in JsRunner.js for examples.
+
 ```
 CustomCommands['your command name'] = function (str) {
     //function
