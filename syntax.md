@@ -67,7 +67,7 @@ Prefix users can use in procedure:
 Annotation that users can use in procedure:
 + `@criteria "criteria_name": {criteria}`: Add a criteria to the advancement. (Need to accomplish **all criteria**)
 
-> Note that for this Annotation, users can split it into multiple lines with indentation, and users can use #{} to generate the JSON.  
+> Note that for this Annotation, users can split it into multiple lines with indentation. 
 > Comments(following the pcc format) will **NOT** be parsed as a part of the JSON.  
 > However, note that the line with the same indentation as the first line would be regarded as new command/annotation.
 >
