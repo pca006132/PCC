@@ -1,5 +1,5 @@
 #module test1
-    #procedure hi
+    #adv hi
         say hi
         ?:
             say test
@@ -19,7 +19,7 @@
         scoreboard objectives add test dummy
         scoreboard player set @s test 0
 
-    #procedure testloop tick
+    #adv testloop tick
         scoreboard players add @s[score_test=9] test 1
         ?:say +1s
         !:remove testloop
@@ -28,13 +28,13 @@
         test 1
 
 #module test
-    #procedure pca:test1 impossible
+    #adv pca:test1 impossible
         say hi
-    #procedure pca:test2 tick impossible
+    #adv pca:test2 tick impossible
         say should run on each tick for every player
-    #procedure pca:test3 main_loop
+    #adv pca:test3 main_loop
         say should be the main loop
-    #procedure testblock
+    #adv testblock
         @criteria "InBlock":{
                 //This comment will not be parsed
                 "trigger": "minecraft:placed_block",
@@ -45,7 +45,7 @@
         remove this
         /say block
 
-    #procedure testimpossible
+    #adv testimpossible
         /say this should also be impossible
 
 

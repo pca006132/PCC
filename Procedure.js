@@ -14,11 +14,15 @@ const trans = require('./Translate.js');
  */
 class Procedure {
 
+
     /**
-     * constructor - New advancement module
+     * constructor
      *
-     * @param  {string} name name of the module
-     * @param  {boolean} requireLoop  whether the advancement is running once per tick, or just a procedure to call by others
+     * @param  {type} name       description
+     * @param  {type} impossible description
+     * @param  {type} tick       description
+     * @param  {type} loop       description
+     * @return {type}            description
      */
     constructor(name, impossible, tick, loop) {
         this.namespace = options.namespace;

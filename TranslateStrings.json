@@ -111,13 +111,13 @@
     },
     "ProcedurePara": {
         "en": [
-            "Wrong parameter of #procedure in line "
+            "Wrong parameter of #adv in line "
         ],
         "tc": [
-            "錯誤#procedure參數, 行"
+            "錯誤#adv參數, 行"
         ],
         "sc": [
-            "错误#procedure参数, 行"
+            "错误#adv参数, 行"
         ]
     },
 

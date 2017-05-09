@@ -258,8 +258,8 @@ function parseSections(lines) {
         } else {
             if (l.content.startsWith("#module ")) {
                 sections.push(new CommandModule.CommandModule(l.content.substring(8)));
-            } else if (l.content.startsWith("#procedure")) {
-                let c = l.content.substring(11);
+            } else if (l.content.startsWith("#adv")) {
+                let c = l.content.substring(5);
                 let p = c.split(" ");
                 let impossible = false;
                 let tick = false;

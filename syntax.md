@@ -51,7 +51,7 @@ Modules can be nested. Content of modules has to be **indented** for 1 more leve
 >
 > For modules named 'init' or 'last', init commands will be executed before placing command blocks/entity markers. Whereas modules named last will be executed last, after placing command blocks/entity markers.  
 
-## Procedure
+## Procedure(adv)
 Using advancements, we can call procedures and return them back to their original position and continue the commands execution **all in 1 game tick**. PCC will allow you to generate that and name the module.
 
 ### Define procedure
@@ -67,13 +67,13 @@ Prefix users can use in procedure:
 Annotation that users can use in procedure:
 + `@criteria "criteria_name": {criteria}`: Add a criteria to the advancement. (Need to accomplish **all criteria**)
 
-> Note that for this Annotation, users can split it into multiple lines with indentation. 
+> Note that for this Annotation, users can split it into multiple lines with indentation.
 > Comments(following the pcc format) will **NOT** be parsed as a part of the JSON.  
 > However, note that the line with the same indentation as the first line would be regarded as new command/annotation.
 >
 > Procedure names will be converted to lower case as Minecraft does.
 >
-> Name of the criteria is the same as its name, such as 'impossible' in the line `#procedure`  
+> Name of the criteria is the same as its name, such as 'impossible' in the line `#adv`  
 > For the main_tick, it would use the `arbitrary_player_tick` criteria.  
 > Tick and main_tick cannot co-exist, main_tick will overwrite tick.  
 > Note that for impossible, the advancement will be revoked immediately. For tick and main_tick, the criteria itself will be revoked.
@@ -81,11 +81,11 @@ Annotation that users can use in procedure:
 > For procedures that didn't specify any criteria, it would use impossible as default.  
 
 ```
-#procedure ([namespace:]name) [impossible] [tick] [main_tick]
+#adv ([namespace:]name) [impossible] [tick] [main_tick]
     //commands etc.
 
 //Example:
-#procedure test
+#adv test
     @criteria "InBlock":{
             //This comment will not be parsed
             "trigger": "minecraft:placed_block",
@@ -96,7 +96,7 @@ Annotation that users can use in procedure:
 
     /say test
 
-#procedure main main_tick
+#adv main main_tick
     /say this is run in a loop(which only 1 player can execute)
 ```
 
