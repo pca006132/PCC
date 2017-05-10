@@ -74,14 +74,14 @@ Annotation that users can use in procedure:
 > Procedure names will be converted to lower case as Minecraft does.
 >
 > Name of the criteria is the same as its name, such as 'impossible' in the line `#adv`  
-> For the main_tick, it would use the `arbitrary_player_tick` criteria.  
-> Tick and main_tick cannot co-exist, main_tick will overwrite tick.  
+> For the main_loop, it would use the `arbitrary_player_tick` criteria.  
+> Tick and main_loop cannot co-exist, main_tick will overwrite tick.  
 > Note that for impossible, the advancement will be revoked immediately. For tick and main_tick, the criteria itself will be revoked.
 >
 > For procedures that didn't specify any criteria, it would use impossible as default.  
 
 ```
-#adv ([namespace:]name) [impossible] [tick] [main_tick]
+#adv ([namespace:]name) [impossible] [tick] [main_loop]
     //commands etc.
 
 //Example:
