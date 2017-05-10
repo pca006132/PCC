@@ -17,7 +17,11 @@ npm install minecraft-pcc -g
 ```
 
 ## Usage:
-For parsing all modules, run
+First, navigate to the folder which your file is located in using
+```
+cd <insert directory here>
+```
+Then, to parse all modules, run
 ```
 pcc (file name)
 ```
