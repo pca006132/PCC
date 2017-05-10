@@ -17,11 +17,7 @@ npm install minecraft-pcc -g
 ```
 
 ## Usage:
-First, navigate to the folder which your file is located in using
-```
-cd <insert directory here>
-```
-Then, to parse all modules, run
+For parsing all modules, run
 ```
 pcc (file name)
 ```
@@ -33,17 +29,17 @@ pcc (file name) (module1) (module2) (module3) ...
 
 Drag the folders(namespace) to `(save)/data/advancements`
 
-After the compiling is complete, PCC should have created a folder in the same directory as your code file named "output", inside that you will find your output .json file.
+## Editor support
+https://github.com/pca006132/pcc-syntax (atom)
+https://github.com/Intipablo/PCC-Syntax-Highlighting (notepad++)
+
+
 ## Options:
 see the options.json
 
 Out is the file to put the output advancements.
 
 To disable the update checker(which will run by default every time you run pcc), change the `autoCheckUpdate` to false.
-
-## Syntax Highlighting
-Visit this github repository for all information related to custom syntax highlighting in code editors for PCC.
-https://github.com/Intipablo/PCC-Syntax-Highlighting
 
 ## Translation
 Currently there are only errors with translations. See the TranslateStrings.json.
