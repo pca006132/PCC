@@ -30,8 +30,8 @@ pcc (file name) (module1) (module2) (module3) ...
 Drag the folders(namespace) to `(save)/data/advancements`
 
 ## Editor support
-https://github.com/pca006132/pcc-syntax (atom)
-https://github.com/Intipablo/PCC-Syntax-Highlighting (notepad++)
++ https://github.com/pca006132/pcc-syntax (atom)
++ https://github.com/Intipablo/PCC-Syntax-Highlighting (notepad++)
 
 
 ## Options:
