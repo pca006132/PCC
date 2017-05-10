@@ -33,6 +33,7 @@ pcc (file name) (module1) (module2) (module3) ...
 
 Drag the folders(namespace) to `(save)/data/advancements`
 
+After the compiling is complete, PCC should have created a folder in the same directory as your code file named "output", inside that you will find your output .json file.
 ## Options:
 see the options.json
 
