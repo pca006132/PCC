@@ -36,6 +36,10 @@ Out is the file to put the output advancements.
 
 To disable the update checker(which will run by default every time you run pcc), change the `autoCheckUpdate` to false.
 
+## Syntax Highlighting
+Visit this github repository for all information related to custom syntax highlighting in code editors for PCC.
+https://github.com/Intipablo/PCC-Syntax-Highlighting
+
 ## Translation
 Currently there are only errors with translations. See the TranslateStrings.json.
 
