@@ -27,28 +27,28 @@ To parse only **some** modules, run
 ```
 pcc filename module1 [module2 module3 ...]
 ```
-(Commands not belong to any module will still be run)
+(Commands not belonging to any module will still be run)
 
 To install the module, you have two options:
-1. If you're actively developing the file,
-2. If you don't want to deal with links or if you're done with development, copy the generated files into `data/advancements/` in your world's folder.
++ If you're actively developing the file, you can put a link to the generated folder into `data/advancements/` in your world's folder.
++ If you don't want to deal with links or if you're done with development, copy the generated folder into `data/advancements/` in your world's folder.
 
 ## Editor support
-+ https://github.com/pca006132/pcc-syntax (atom)
-+ https://github.com/Intipablo/PCC-Syntax-Highlighting (notepad++)
++ [atom](https://github.com/pca006132/pcc-syntax)
++ [notepad++](https://github.com/Intipablo/PCC-Syntax-Highlighting)
 
 
 ## Options:
-see the options.json
+File: options.json
 
-Out is the file to put the output advancements.
+`Out` is the file to put the output advancements.
 
-To disable the update checker(which will run by default every time you run pcc), change the `autoCheckUpdate` to false.
+To disable the update checker (which will, by default, run every time you run PCC), change `autoCheckUpdate` to false.
 
 ## Translation
-Currently there are only errors with translations. See the TranslateStrings.json.
+Currently there are some errors with translations. See the TranslateStrings.json.
 
-> TODO: Give those keys a more meaningful name.
+> TODO: Give those translation keys more meaningful names.
 
 ## Documentation:
 + [Syntax](syntax.md)
