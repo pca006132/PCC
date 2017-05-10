@@ -1,7 +1,7 @@
 {
   "name": "minecraft-pcc",
   "description": "A simple, but powerful command compiler for Minecraft command players.",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "author": "pca006132 <john.lck40@gmail.com>",
   "repository": {
     "type": "git",
@@ -16,6 +16,7 @@
     "Command"
   ],
   "preferGlobal": true,
+  "main":"./app.js",
   "bin":{
     "pcc": "./app.js"
   },

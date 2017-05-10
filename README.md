@@ -47,10 +47,3 @@ Currently there are only errors with translations. See the TranslateStrings.json
 + [JavaScript API(for in file scripts)](JsAPI.md)
 
 Run JsDoc to get the full documentation.
-
-## TODO
-https://github.com/nlf/node-github-hook
-https://github.com/garrettjoecox/scriptserver
-
-Githook, check git for new commit, download it, clear the server's save/data/advancements
-compile the files downloaded from git to save/data/advancements, and run /reload commnad
