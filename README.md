@@ -3,7 +3,7 @@ PCC is a Minecraft command compiler written in JavaScript (Node.js). Its design 
 
 ## Features
 + Simple syntax, allowing users to focus on their commands.
-+ Ability to compile commands into advancement modules, function txt files, and command block chains.
++ Ability to compile commands into advancement modules, function txt files, and (eventually) command block chains.
 + JavaScript command generation; for example, creating one command per direction the player could look.
 + The user can define custom annotations and command functions.
 
