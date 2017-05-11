@@ -1,50 +1,54 @@
 # Introduction
-PCC is a command compiler written in JavaScript(Node.js), focused on simplicity and effiency.
+PCC is a Minecraft command compiler written in JavaScript (Node.js). Its design is focused on both simplicity and effiency.
 
-## Features:
-+ Simple syntax, allows users to focus on the commands.
-+ Compile advancement modules, chains, normal commands. (Currently all outputs are advancement files)
-+ Run javascripts when compiling, so users can generate commands on the fly. (Can change the parameters easily later)
-+ Define custom annotations and custom commands.
-+ Simple syntax to generate advancements for detection.
-+ Let users to choose which module to compile. (2 options: Default - This will compile all modules, to compile a set of modules it depends on the command line parameter)
+## Features
++ Simple syntax, allowing users to focus on their commands.
++ Ability to compile commands into advancement modules.
++ JavaScript command generation; for example, creating one command per direction the player could look.
++ The user can define custom annotations and command functions.
 
-## Install
-First, install node.js, then run:
+## Upcoming features
++ Ability to compile commands into command blocks.
+
+## Installation
+First, install [node.js](https://nodejs.org/en/), then (in a terminal or command prompt) run
 
 ```
 npm install minecraft-pcc -g
 ```
 
-## Usage:
-For parsing all modules, run
+## Usage
+To parse all modules, run
 ```
-pcc (file name)
-```
-
-For parsing some modules **ONLY** (Commands not belong to any module will still be run), run
-```
-pcc (file name) (module1) (module2) (module3) ...
+pcc filename
 ```
 
-Drag the folders(namespace) to `(save)/data/advancements`
+To parse only **some** modules, run
+```
+pcc filename module1 [module2 module3 ...]
+```
+(Commands not belonging to any module will still be run)
+
+To install the module, you have two options:
++ If you're actively developing the file, you can put a link to the generated folder into `data/advancements/` in your world's folder.
++ If you don't want to deal with links or if you're done with development, copy the generated folder into `data/advancements/` in your world's folder.
 
 ## Editor support
-+ https://github.com/pca006132/pcc-syntax (atom)
-+ https://github.com/Intipablo/PCC-Syntax-Highlighting (notepad++)
++ [atom](https://github.com/pca006132/pcc-syntax)
++ [notepad++](https://github.com/Intipablo/PCC-Syntax-Highlighting)
 
 
 ## Options:
-see the options.json
+File: options.json
 
-Out is the file to put the output advancements.
+`Out` is the file to put the output advancements.
 
-To disable the update checker(which will run by default every time you run pcc), change the `autoCheckUpdate` to false.
+To disable the update checker (which will, by default, run every time you run PCC), change `autoCheckUpdate` to false.
 
 ## Translation
-Currently there are only errors with translations. See the TranslateStrings.json.
+Currently there are some errors with translations. See the TranslateStrings.json.
 
-> TODO: Give those keys a more meaningful name.
+> TODO: Give those translation keys more meaningful names.
 
 ## Documentation:
 + [Syntax](syntax.md)
