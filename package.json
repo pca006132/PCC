@@ -1,24 +1,44 @@
 {
-  "name": "minecraft-pcc",
-  "description": "A simple, but powerful command compiler for Minecraft command players.",
-  "version": "0.1.3",
-  "author": "pca006132 <john.lck40@gmail.com>",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/pca006132/pcc.git"
-  },
-  "bugs": {
-    "url": "https://github.com/pca006132/pcc/issues"
-  },
-  "homepage": "https://github.com/pca006132/pcc#readme",
-  "keywords": [
-    "Minecraft",
-    "Command"
-  ],
-  "preferGlobal": true,
-  "main":"./app.js",
-  "bin":{
-    "pcc": "./app.js"
-  },
-  "license": "MIT"
+    "name": "minecraft-pcc",
+    "version": "0.2.0",
+    "description": "A simple, but powerful command compiler for Minecraft command players.",
+    "main": "lib/index.js",
+    "scripts": {
+        "build": "tsc && babel src --out-dir lib --extensions \".ts\"",
+        "main": "node ./lib/index.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/pca006132/pcc.git"
+    },
+    "bugs": {
+        "url": "https://github.com/pca006132/pcc/issues"
+    },
+    "homepage": "https://github.com/pca006132/pcc#readme",
+    "keywords": [
+        "Minecraft",
+        "Command"
+    ],
+    "author": "pca006132 <pca006132@gmail.com>",
+    "license": "MIT",
+    "devDependencies": {
+        "@babel/cli": "^7.0.0-beta.46",
+        "@babel/core": "^7.0.0-beta.46",
+        "@babel/plugin-proposal-class-properties": "^7.0.0-beta.46",
+        "@babel/plugin-proposal-object-rest-spread": "^7.0.0-beta.46",
+        "@babel/preset-env": "^7.0.0-beta.46",
+        "@babel/preset-typescript": "^7.0.0-beta.46",
+        "@types/event-stream": "^3.3.33",
+        "@types/js-yaml": "^3.11.1",
+        "@types/mocha": "^5.2.0",
+        "@types/node": "^9.6.6",
+        "mocha": "^5.1.1",
+        "typescript": "^2.8.3"
+    },
+    "dependencies": {
+        "event-stream": "^3.3.4",
+        "js-yaml": "^3.11.0",
+        "babel-polyfill": "^6.26.0",
+        "babel-plugin-transform-runtime": "^6.23.0"
+    }
 }

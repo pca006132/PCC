@@ -1,258 +1,334 @@
-# Syntax
-## Indentation
-Indentation is important in PCC. Here are a few reminders:
+# 语法
 
-> + Never mix tab and spaces
-> + Use constant length indentation
+# 语法
+PCC使用缩进来区分代码块，要求用户使用一致的缩进格式（tab或者是2/3/4个空格）并且不能把tab和空格混用。
 
-## Comment
-Comments will be **ignored** by the compiler. There are two ways to write comments:
+所有生成的命令函数也应该以实体来执行，并且用户不应该使用以 `$` 字符开始的记分板变量(Objective)（因为这个是供生成出来的变量使用）。此外，用户需要运行 `_init` 命令函数以初始化整个系统。
 
-Single line comment:
+## 基础语法
+### 空行
+空行就是那些完全没有字符或者只有tab/空格的行。那些空行会被忽略，而且不需理会其缩进格式。
+### 注释
+整行注释会被生成器忽略，其缩进格式也不会被理会。PCC提供了两种格式：单行及多行注释。
+
 ```
-//comment
+//单行
+
+/*
+  多
+  行
+    */
 ```
 
-Multiline comment:
+`/*`及`//`必须放在行的开始（缩进之后）以视为注释的开始，`*/`必须放在行末以视为注释的完结。故此PCC是**没有行内注释**的。
+
+PCC不容许嵌套注释，因为生成器不会理会注释的内容。
+### 命令
+基本上在命令函数内的每行字符都会视作命令，除非那行以某些特殊的关键词开始，如 `if` 等。
+
+但是，用户可以把命令分拆为几行，只要第二行及之后的行都增加一级缩进即可，那些行前后的空格会被移除，组合的时候行与行之间会加上空格。如果不想加上空格或者想保留某些空格，请在行末（想保留的空格之后）加上 `\` 字符，那样组合的时候那`\`字符就会被直接移除并且不会移除`\`前的空格或在之间加上空格。
+
+> 每行（命令）的开始不可以加上 `/`
+
+例子:
+
 ```
-/* Comment
-comment
-comment
-comment everywhere*/
+execute if @s[tag=say]
+    as @e[c=-1]
+    at @s
+    run
+    say h\
+    i
+say bye
 ```
 
-> Caution!
+等于
+
+```
+execute if @s[tag=say] as @e[c=-1] at @s run say hi
+
+say bye
+```
+
+## 模块系统
+每个命令函数或事件（进度）都会放在一个模块内，这模块等于一个文件夹，也可以存放别的模块。根模块就是命名空间(namespace)。
+
+模块的全名:
+* 根模块: `<名称>:`
+* 不是根模块: `<父模块名称><模块名称>/`
+
+如 `test:`，`test:a/`，`test:a/b/`
+
+
+调用模块内容时，用户可以直接使用相对路径: `(子模块名称)/` 或 `../`代表父模块。
+
+模块、命令函数及事件名称只容许使用小写字母、数字、`_`及`-`。
+
+> 所有没有 `:` 字符的命令函数名称将会视为相对路径。如果命令函数名称存在圆括号`()`的话也会检查是否模板命令函数。
 >
-> `//`, `/*` or `*/` must be at the start/end of the line, and cannot be inside of the commands.
-> As it would be easier to do so :P.
-> Also, comments inside commands would just reduce the readability of the command.
-
-## Module
-Modules can let users to sort out the commands, and sometimes users may just want to compile a single module. So PCC would allow users to write modules, and only compile that if needed.
-
-Modules can be nested. Content of modules has to be **indented** for 1 more level.
-```
-#module (module name)
-    //commands/other modules etc.
-
-//For example:
-#module test
-    /say hello
-    /say end of module
-    #module test2
-        /say this is in module test2 of test(test.test2)
-/say this is not inside module 'test' nor 'test2'
-```
-
-> Caution: Names of the modules can only occur once!
+> 调用命令函数会触发检测系统，检测该函数是否存在，不存在则会报错。
 >
-> Most modules are meaningless to the compiler, compiler will just treat them as normal commands.  
-> But you can specify which module to generate, and some modules with special names will be treated differently.
->
-> For modules named 'init' or 'last', init commands will be executed before placing command blocks/entity markers. Whereas modules named last will be executed last, after placing command blocks/entity markers.  
+> 只有在 `function` 命令（直接调用或者是嵌套在`execute`里的）及事件 annotation 里可以使用相对路径，其他地方（比如是`tellraw`的`clickEvent`里）不会被处理。
 
-## Procedure(adv)
-Using advancements, we can call procedures and return them back to their original position and continue the commands execution **all in 1 game tick**. PCC will allow you to generate that and name the module.
-
-### Define procedure
-Procedures can be part of a module, but you **cannot declare modules** inside a procedure. Commands inside procedures have to be **indented for 1 more level**.
-
-Also, you **cannot use most of the annotations and some prefixes** inside procedures, such as generating marker entities, get stats, as the procedure is not executed by command blocks, but by the player instead.
-
-Prefix users can use in procedure:
-+ ?: conditional
-+ !: inverse of conditional (run when failed)
-+ r: raw string after it
-
-Annotation that users can use in procedure:
-+ `@criteria "criteria_name": {criteria}`: Add a criteria to the advancement. (Need to accomplish **all criteria**)
-
-> Note that for this Annotation, users can split it into multiple lines with indentation.
-> Comments(following the pcc format) will **NOT** be parsed as a part of the JSON.  
-> However, note that the line with the same indentation as the first line would be regarded as new command/annotation.
->
-> Procedure names will be converted to lower case as Minecraft does.
->
-> Name of the criteria is the same as its name, such as 'impossible' in the line `#adv`  
-> For the main_loop, it would use the `arbitrary_player_tick` criteria.  
-> Tick and main_loop cannot co-exist, main_tick will overwrite tick.  
-> Note that for impossible, the advancement will be revoked immediately. For tick and main_tick, the criteria itself will be revoked.
->
-> For procedures that didn't specify any criteria, it would use impossible as default.  
-
+### 模块定义
 ```
-#adv ([namespace:]name) [impossible] [tick] [main_loop]
-    //commands etc.
-
-//Example:
-#adv test
-    @criteria "InBlock":{
-            //This comment will not be parsed
-            "trigger": "minecraft:placed_block",
-            "conditions":{
-                "block": "minecraft:stone"
-            }
-        }
-
-    /say test
-
-#adv main main_tick
-    /say this is run in a loop(which only 1 player can execute)
+module <名称>:
+    <内容>
 ```
 
-### Run procedure
-> It is implemented by PCC custom commands. See below for more information.
->
-> Caution: be careful to use this inside procedure, it could cause huge problems as it may cause infinite loop.
+> 名称可以使用 `.` 代表子模块，如 `a.b.c` 代表 `a` 里的 `b` 里的 `c` 模块。
 
-> Can use `this` to refer to current advancemnet namespace:name.
-
+### 事件
+定义一个事件，以函数标签实现。函数可以聆听该事件（使用annotation）或触发该事件（调用聆听了该事件的函数）。
 ```
-run (namespace:name [criteria])
-
-//Example:
-run pcc:test
-run this
-```
-
-### Remove procedure
-> Useful in loops, as you need to terminate the loop.
-
-> Can use `this` to refer to current advancemnet namespace:name
-
-```
-remove (namespace:name [criteria])
-
-//Example:
-remove pcc:test
-remove this InBlock
-```
-
-## Chain
-By default, commands are stored in a straight chain towards +x direction. (Start at 1 0 0)
-
-Users can start a new chain, with certain special properties. Commands in them will have to indent another level.
-```
-#chain (x) (y) (z) [direction1] [loop]
-//or
-#chain (x) (y) (z) [direction1] [wrap,(direction2),(wrap count)]
+event <名称>
 
 //example
-#chain 1 2 3 +x loop
-    say this is in a loop
-    say this is also in a loop
-#chain ~ ~1 ~ +x wrap,+z,20
+event test
 ```
 
-Parameters:
-+ x, y, z: The initial position of command chain. If using tile(~) notation, the coordinate will start at the position of the last chain initial position.
-+ direction1: the direction of the chain to be placed. By default +x. Accepts +/- x/y/z, such as +y, -z etc.
-
-There are three modes:
-+ default: no wrap, no loop, just a stright chain.
-+ loop: The last command block will point towards the first command block of the loop, and command blocks will be set to UpdateLastExecution:0b. **Please be remembered to terminate the loop**, or set the gamerule to limit the number of commands execution.
-+ wrap: The command blocks will be wrapped to save spaces. But this may break conditional command blocks(Will warn about that).
-    + direction2: the direction to wrap towards. (After wrapping, the direction1 will be reversed, but direction2 will always stay the same)
-    + wrap count: the number of command blocks in a row. (After placing that number of command blocks, it will form a new row and reverse the direction1)
-
+事件annotation：需要放在函数定义上方
 ```
-Loop:
-↓ ←
-↓ ↑
-↓ ↑
-→ ↑
-
-Wrap:
-↓ → ↓ →
-↓ ↑ ↓ ↑
-↓ ↑ ↓ ↑
-→ ↑ → ↑
-```
-
-## Command properties
-Command properties are defined by their prefix:
-+ by default: UpdateLastExecution:1b, auto:1b, none conditional, chain command block
-+ rcb: auto:1b, repeating command block
-+ icb: auto:0b, impulse command block
-+ ?: conditional
-+ 1: auto:1b
-+ 0: auto:0b
-+ r: raw command(command after it will not be further parsed)
-
-> Only ?: and r: prefixes are allowed in procedures.  
-> One more prefix for procedures: !:, which is the inverse of conditional(run when the previous command fail).
-
-You can inherit prefixes by writing a line with prefixes **only**, and commands which need to inherit them have to be indented for 1 more level.
-```
-?:
-    /say this is a conditional command block
-    /say this is conditional also!
-/say while this is not a conditional command block
-```
-
-## Commands in multiline
-You can split commands into multiple lines if needed, for example, a long nested /execute command or long NBT.
-The lines after the first line have to be indented for 1 more level.
-Note that **no empty lines are allowed in it.**
-
-Spaces before the commands will be trimmed, but spaces after the command will **not** be trimmed.
-
-For the following example, please note that there are spaces after line 1,2,3 (but not 4)
-```
-/execute @e ~ ~ ~
-    execute @e ~ ~ ~
-    execute @a ~ ~ ~
-    say IDK why i will use so many exe
-    cutes.
-
-//will be compiled as
-
-execute @e ~ ~ ~ execute @e ~ ~ ~ execute @a ~ ~ ~ say IDK why i will use so many execute.
-```
-
-## Annotation
-This can specify some properties to the next command block.
-
-### Label
-Label the coordinate of the next command block. This can be further used by JavaScript.
-```
-@label (name)
-
-//example:
-
-@label test
-say the location of this command block is labeled as test
-```
-> Note that there cannot be multiple label for 1 command block.
->
-> Also, for the same label, there can only be one coordinate(command block)
-
-### Marker entity
-Summon a marker entity at the coordinates of the next command block.
-Can specify its name and tag.  
-Useful for targeting **multiple** command blocks.
-
-> Implemented through area effect cloud, so don't have to worry about the number of markers if it is less than 10w. What users need to care about is the number of entities to execute commands.
-
-```
-@mark (name) (tag1) (tag2) ...
-
-//example:
-@mark test tag1 tag2 tag3
-/say Here is an area effect cloud with name test, Tags:[tag1,tag2,tag3]
-```
-
-### Stats
-Set the score of an entity/a player to the stats of a command block by stats command.
-
-> Users have to add the objective by themselves, but the initialization of the score would be generated by the compiler.
->
-> Do not recommend using player's stats score to store the command block stats, as it may be used by advancement procedures already.
-
-```
-@stats (stat) (entity/player) (objective)
+@event (事件名称，以逗号分隔)
 
 //example
-@stats SuccessCount @e[type=area_effect_cloud,c=1,name=stats] stats
-/say this command block's stat is tracked by the scoreboard
+@event test, test2
+def bla:
+    say some command
 ```
+
+### 一般命令函数
+定义一个有名字的命令函数。
+
+里面可以使用 `return` 语句来离开当前命令函数。
+
+```
+def <名称>:
+    <命令>
+```
+
+### 模板命令函数
+就是有参数的命令函数，根据调用的参数生成指定命令函数（把参数数值替换进去然后再进行处理）。除非被调用，否则不会生成，而且不同参数会生成出不同的命令函数。
+
+定义:
+```
+template <名称>(<$param1>, <$param2>...):
+    <命令>
+```
+
+每个参数都必须以`$`作开始，只能有英文字母、数字及`_`字符。
+
+调用与一般命令函数无异，只是需要加上参数，如`test(a, b, c)`。参数前后的空格会被移除，以逗号作为分隔符。如果发现参数内有逗号 `,` 或圆括号字符 `()` 或该参数是一个空参数，则以 `"` 符号包住整个参数，然后用另外一个 `\` 符号转义里面的 `\` 及 `"` 符号。
+
+```
+template example($a， $b):
+    say $a$b
+
+def test:
+    function example(hi!, "")
+
+//这会生成一个命令函数（名字未必如此）
+def example$a:
+    say hi!
+```
+
+### While 循环
+```
+while ([not]if的子命令) && ([not]if的子命令)...:
+    命令
+```
+
+如果条件成功（not模式则是相反），则执行命令，然后回去检查条件。多个条件可以以 `&&` 连接，则需要全部条件都达成才会被触发。（先检查的循环）
+
+可以在里面使用 `break`语句以脱离当前循环（不会继续循环），或者是 `continue`语句以跳过这次循环（回去检查条件）。
+
+> 针对最内层的循环。
+
+```
+while entity @s[tag=bla]:
+    while not score @s a > pca a:
+        //不知道做啥处理
+```
+
+### 匿名命令函数
+```
+execute ... run:
+    命令
+```
+
+这会把里面的命令放在一个命令函数里然后把 `run` 之后插入命令函数调用。这一般是用作 `foreach` 实体。
+
+注意，命令部分的缩进层级必须比`run`所在的行多缩进一层，如
+
+```
+execute if @s[scores={test=1..}]
+    if @s[scores={bla=1}]
+    run:
+        commands...
+```
+
+## 文字处理
+用户可以使用这些特殊的处理方便编写大量命令，或者根据某些“常量”来生成命令，方便修改及阅读。
+
+常量、宏及JSON的定义需要放在文件的开始（`import`之后），并且不能被别的文字处理生成。常量及宏是没有范围(scope)的，除了`import`语句和这些常量类的定义以外，文件的其他部分都可以使用。
+
+### 常量
+用户可以定义常量，在文件其他地方调用时会被替换为其内容。
+
+常量名称需以 `$` 为开始，只能有英文字母（建议使用大写）、数字、`_`。与模板命令函数的参数类似，其名称会被替换为其内容。
+
+定义:
+```
+#define <名称> = <内容>
+```
+内容部分前后的空格会被移除。
+
+### 宏
+用户可以定义宏，宏被调用时会根据参数生成一堆行（命令）。宏的调用必须在独立一行，前后都不能有别的东西。在宏里调用别的宏也是容许的。
+
+命名规则与常量一致，除了第一个字符需是`#`。参数处理方式与模板命令函数一致，生成出来的行的会根据宏的调用的缩进进行处理。
+
+定义:
+```
+#macro <名字>($param1, $param2):
+    内容
+```
+
+例子:
+```
+#macro #TEST($a):
+    say Hi!
+    say said $a.
+
+def test:
+    #TEST(john)
+```
+
+处理后:
+```
+def test:
+    say Hi!
+    say said john
+```
+
+> 可以定义不同参数数量的同一名称的宏来进行过载。
+
+### JSON
+用户可以定义JSON字串，接纳YAML格式（必须可以转为JSON）或原始JSON的格式，并且可以多行（之后的行的缩进必须比当前行多1）。其命名规则与常量一致。
+
+定义:
+```
+#json <名称>:
+    <内容>
+```
+
+如
+```
+//JSON格式
+#json $TEST:
+    {
+        "a": 123,
+        "b": [
+            1,
+            2
+        ]
+    }
+
+//YAML格式
+#json $TEST2:
+    a: 123
+    b:
+        - 1
+        - 2
+```
+
+使用的时候可以和普通常量一样直接写其名字。如果需要转义，则可以在后方写上 `(n)` n为转义次数，正整数。
+如 `$TEST` 或 `"$TEST(1)"` 均可。
+
+> 注意，在json定义中，只能使用常量而不能使用别的东西
+
+### 条件生成
+> C++里的 `#if` 条件编译
+
+如果一个条件吻合，则生成指定内容，否则则会被忽略。（缩进-1）。
+
+格式:
+```
+#if <条件>:
+    内容...
+```
+
+和上方的if类似，但条件为JavaScript表达式（返回boolean）。
+
+### foreach 循环
+循环的每一次都会生成一次内容，每行的缩进会减1并且会替换变量为变量数值。容许嵌套。
+
+格式:
+```
+#for <变量> in <JS表达式>:
+    内容
+```
+
+变量的命名规则与模板命令函数的参数一致，JS表达式应该回传一个iterator或者是数组作为循环，我们提供 `range(start:0, end, step: 1)` 函数，与Python里的`range`一样。
+
+
+```
+#for $a in range(3):
+    say $a
+
+//输出
+say 0
+say 1
+say 2
+```
+
+### 代码执行
+执行JS代码并且替换为其输出，多半在模板函数、宏、foreach循环内使用。
+
+格式:
+```
+${表达式}
+```
+
+如
+```
+say ${1+1}
+//输出:
+say 2
+```
+
+### 原始行
+不对该行进行任何文字处理、替换，那前缀`raw:`在最后会被移除。
+
+格式:
+```
+raw:<行内容>
+```
+
+## 多档案处理
+### Import
+```
+import <文件路径>
+//如
+import test
+```
+> 文件路径相对于当前文件的路径
+
+用户可以import别的文件：
+
+* 别的pcc文件（其内容亦会被生成）:
+    * 导入常量
+    * 导入宏
+    * 使用命令函数/模板命令函数
+
+> Import语句需要在文件开始放置。
+>
+> 只能使用此文件内`import`了的文件内定义的东西，而不能使用`import`了的文件`import`了的东西。
+
+### Ref
+```
+ref <文件路径>
+```
+
+用户可以引入别的专案生成的资料文件里的函数、事件定义，以调用相关函数、事件。
+那文件不会包括在最终输出，只是用作检查模块调用。

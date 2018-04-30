@@ -1,0 +1,24 @@
+//-----a.pcc-----
+#define $c = test
+
+module a:
+    module b.c:
+        def simple:
+            while entity @s[tag=simple] && not entity @s[tag=young]:
+                function ../../a(pca, dummy)
+    template a($a, $b):
+        say $a $c
+        while score @s $b > $a $b:
+            scoreboard players remove @s $b 1
+
+    event test
+
+    @event test
+    def test:
+        say hi
+            bla\
+            bla
+        while true:
+            execute if score @s $c = pca $c run:
+                break
+            scoreboard players remove @s $c 1
