@@ -1,0 +1,12 @@
+{
+    "events": [
+        {
+            "name": "load",
+            "ns": "minecraft"
+        },
+        {
+            "name": "tick",
+            "ns": "minecraft"
+        }
+    ]
+}

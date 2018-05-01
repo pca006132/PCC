@@ -1,4 +1,6 @@
 //-----a.pcc-----
+ref minecraft
+
 #define $c = test
 
 module a:
@@ -11,9 +13,7 @@ module a:
         while score @s $b > $a $b:
             scoreboard players remove @s $b 1
 
-    event test
-
-    @event test
+    @event minecraft:tick
     def test:
         say hi
             bla\

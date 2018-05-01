@@ -2,6 +2,7 @@ import {Line, LineError} from './line';
 import {TreeNode} from './tree';
 import * as list from '../util/linked_list';
 import * as helper from '../util/textutil';
+import {getDefaultNs} from '../config';
 
 interface BlockParser {
     name: string;
@@ -35,7 +36,7 @@ const parsers: BlockParser[] = [{
             r[this.name].push({
                 name: m[1],
                 params: helper.getParams(m[2], 0).map(p=>new RegExp(helper.regexEscape(p), 'g')),
-                ns: d['module'],
+                ns: d['module'] || getDefaultNs(),
                 content: [],
                 file: l.item.file,
                 lineNum: l.item.lineNum
@@ -69,7 +70,7 @@ const parsers: BlockParser[] = [{
             let node = new TreeNode(this.name, {
                 name: m[1],
                 events: events,
-                ns: d['module']
+                ns: d['module'] || getDefaultNs()
             }, {file: l.item.file, lineNum: l.item.lineNum});
             s.push(node);
             r[this.name].push(node);
@@ -101,8 +102,8 @@ const parsers: BlockParser[] = [{
             let index = d[this.name].indexOf(o.data);
             if (index > 0) {
                 index--;
+                d[this.name] = d[this.name].substring(0, index);
             }
-            d[this.name] = d[this.name].substring(0, index);
         }
         d['event-annotation'] = [];
     }
@@ -122,7 +123,7 @@ const parsers: BlockParser[] = [{
         return (m) => {
             r[this.name].push({
                 name: m[1],
-                ns: d['module'],
+                ns: d['module'] || getDefaultNs(),
                 file: l.item.file,
                 lineNum: l.item.lineNum
             });
@@ -131,7 +132,7 @@ const parsers: BlockParser[] = [{
 }, {
     name: 'event-annotation',
     prefix: '@event',
-    pattern: /^@event ([a-z0-9_\-, ]+)$/,
+    pattern: /^@event (.+)$/,
     topLevel: true,
     skipChildren: false,
     acceptAnnotation: true,

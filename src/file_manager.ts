@@ -5,15 +5,13 @@ import {Macro} from './parsing/macro';
 import * as path from 'path';
 import * as preprocessor from './parsing/preprocessor';
 import * as sandbox from './util/sandbox';
-import {readFile} from 'fs';
-import {promisify} from 'util';
 import {getBlocks, getFunction} from './parsing/block_parser';
 import {printTree, TreeNode} from './parsing/tree';
 import ModuleManager from './analyzing/module';
 import {analyze} from './analyzing/analyzer';
 import * as list from './util/linked_list';
-
-const readFileAsync = promisify(readFile);
+import {readFile} from 'fs-extra';
+import {getGlobal} from './config';
 
 const IMPORT_PATTERN = /^import (.*)/;
 const REF_PATTERN = /^ref (.*)/;
@@ -43,16 +41,33 @@ class PccFile {
                     continue;
                 }
 
-                let m = IMPORT_PATTERN.exec(raw.trimLeft());
+                let m = IMPORT_PATTERN.exec(raw.trimRight());
                 if (m) {
-                    this.dependencies.push(path.join(directory, m[1]) + '.pcc');
+                    let p = getGlobal()[m[1]];
+                    if (p) {
+                        if (!p.endsWith('pcc'))
+                            throw new Error(`Line ${this.reader.lineNum}: ${raw.trimRight()}\nCannot import definition as pcc file`);
+                        this.dependencies.push(p);
+                    } else {
+                        this.dependencies.push(path.join(directory, m[1]) + '.pcc');
+                    }
                 } else {
-                    m = REF_PATTERN.exec(raw.trimLeft());
+                    m = REF_PATTERN.exec(raw.trimRight());
                     if (m) {
-                        let p = path.join(directory, m[1]) + '.pcd';
-                        this.refs.push(p);
-                        if (refs.indexOf(p) === 0) {
-                            refs.push(p);
+                        let p = getGlobal()[m[1]];
+                        if (p) {
+                            if (!p.endsWith('pcd'))
+                                throw new Error(`Line ${this.reader.lineNum}: ${raw.trimRight()}\nCannot import pcc file as definition`);
+                            this.refs.push(p);
+                            if (refs.indexOf(p) === -1) {
+                                refs.push(p);
+                            }
+                        } else {
+                            let p = path.join(directory, m[1]) + '.pcd';
+                            this.refs.push(p);
+                            if (refs.indexOf(p) === -1) {
+                                refs.push(p);
+                            }
                         }
                     } else {
                         break;
@@ -153,7 +168,7 @@ let context = new sandbox.Context();
 
 export async function parse(name: string, js: string[] = []) {
     let scripts = (await Promise.all(
-        js.map(j=>readFileAsync(path.resolve(j), 'utf-8'))
+        js.map(j=>readFile(path.resolve(j), 'utf-8'))
     )).map((v, i)=>({
         name: js[i],
         code: v
@@ -170,13 +185,14 @@ export async function parse(name: string, js: string[] = []) {
         console.log((<Error>e).stack);
         return;
     }
-    let p = Promise.all(refs.map(r=>readFileAsync(r, 'utf-8')));
+    let p = Promise.all(refs.map(r=>readFile(r, 'utf-8')));
 
     try {
         await Promise.all(Object.keys(files).map(n=>files[n].load()));
     } catch (e) {
         console.log('Error while loading files');
-        console.log((<Error>e).stack);
+        if ((<Error>e).stack)
+            console.log((<Error>e).stack);
         return;
     }
     try {
@@ -186,7 +202,8 @@ export async function parse(name: string, js: string[] = []) {
     } catch (e) {
         console.log('Error while parsing files');
         console.log(e.toString());
-        console.log((<Error>e).stack);
+        if ((<Error>e).stack)
+            console.log((<Error>e).stack);
         return;
     }
     let referencess: {file: string, content: object}[];
@@ -194,7 +211,8 @@ export async function parse(name: string, js: string[] = []) {
         referencess = (await p).map((v, i)=>({file: refs[i], content: JSON.parse(v)}));
     } catch (e) {
         console.log('Error while resolving references');
-        console.log((<Error>e).stack);
+        if ((<Error>e).stack)
+            console.log((<Error>e).stack);
         return;
     }
 
@@ -210,7 +228,6 @@ export async function parse(name: string, js: string[] = []) {
     for (let f of Object.keys(files)) {
         templates.push(...(<object[]>files[f].results['template']));
     }
-
     return {
         defs: defs,
         events: events,
@@ -221,7 +238,6 @@ export async function parse(name: string, js: string[] = []) {
 
 export function compile(defs: TreeNode[], events: object[], templates: object[], refs: {file: string, content: object}[]) {
     let manager = new ModuleManager(accessChecker);
-
     for (let f of refs) {
         if (f.content['defs']) {
             for (let d of f.content['defs']) {
@@ -293,24 +309,22 @@ export function compile(defs: TreeNode[], events: object[], templates: object[],
         }
     }
 
-    let fn: {name: string, ns: string, commands: string[]}[] = [];
-    let event: {name: string, ns: string, usage: string[]}[] = [];
+    let fn: {name: string, commands: string[]}[] = [];
+    let event: {name: string, usage: string[]}[] = [];
 
     for (let ns of Object.keys(manager.modules)) {
         for (let name of Object.keys(manager.modules[ns].defs)) {
             let def = manager.modules[ns].defs[name];
             if (def instanceof TreeNode) {
                 fn.push({
-                    name: name,
-                    ns: ns,
+                    name: ns + '.' + name,
                     commands: def.data['commands']
                 })
             }
         }
         for (let name of Object.keys(manager.modules[ns].events)) {
             event.push({
-                name: name,
-                ns: ns,
+                name: ns + '.' + name,
                 usage: manager.modules[ns].events[name].usage
             })
         }
@@ -328,17 +342,17 @@ export function getDefinitions(defs: TreeNode[], events: object[]) {
         manager.addEvent(<{name: string, ns: string, file: string}>e);
     }
     for (let d of defs) {
-        manager.addDef(d.data['ns'] + '.' + d.data['name'], d, d.src.file);
+        manager.addDef(d.data['ns'] + '.' + d.data['name'], null, d.src.file);
     }
 
     let fn: string[] = [];
-    let event: string[] = [];
+    let event: {name: string, ns: string}[] = [];
     for (let ns of Object.keys(manager.modules)) {
         for (let name of Object.keys(manager.modules[ns].defs)) {
             fn.push(ns + '.' + name);
         }
         for (let name of Object.keys(manager.modules[ns].events)) {
-            event.push(ns + '.' + name);
+            event.push({ns: ns, name: name});
         }
     }
 

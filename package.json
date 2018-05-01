@@ -29,6 +29,7 @@
         "@babel/preset-env": "^7.0.0-beta.46",
         "@babel/preset-typescript": "^7.0.0-beta.46",
         "@types/event-stream": "^3.3.33",
+        "@types/fs-extra": "^5.0.2",
         "@types/js-yaml": "^3.11.1",
         "@types/mocha": "^5.2.0",
         "@types/node": "^9.6.6",
@@ -36,9 +37,13 @@
         "typescript": "^2.8.3"
     },
     "dependencies": {
-        "event-stream": "^3.3.4",
-        "js-yaml": "^3.11.0",
+        "babel-plugin-transform-runtime": "^6.23.0",
         "babel-polyfill": "^6.26.0",
-        "babel-plugin-transform-runtime": "^6.23.0"
+        "event-stream": "^3.3.4",
+        "fs-extra": "^5.0.0",
+        "js-yaml": "^3.11.0"
+    },
+    "bin": {
+        "pcc": "./lib/index.js"
     }
 }
