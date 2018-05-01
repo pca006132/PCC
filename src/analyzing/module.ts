@@ -56,7 +56,7 @@ function getModuleAndName(fullname: string) {
 
 export default class ModuleManager {
     modules: {[key: string]: Module} = {};
-    templates: {ns: string, name: string, actual: string, params: {name: RegExp, content: string}[], lineNum: number}[] = [];
+    templates: {ns: string, name: string, actualNs: string, actual: string, events: string[], params: {name: RegExp, content: string}[], lineNum: number}[] = [];
     defs: {ns: string, name: string}[] = [];
     accessChecker: (a: string, b: string)=> boolean;
 
@@ -85,8 +85,8 @@ export default class ModuleManager {
             throw new Error(`Conflict function declaration ${dot2ns(fullname)} between ${file} and ${conflict}`);
         }
         if (content) {
-            content.data.num = 233; //initialize a counter for anonymous function naming
-            this.modules[ns].defs[name] = content;
+            content.data.num = 1; //initialize a counter for anonymous function naming
+            let temp_name = name;
             if (content.data.events) {
                 for (let event of content.data.events) {
                     let _fullname = getFullName(event, ns);
@@ -97,17 +97,46 @@ export default class ModuleManager {
                     if (!this.accessChecker(file, this.modules[_ns].events[_name].file)) {
                         throw new Error(`Unknown event ${dot2ns(_fullname)} for function ${dot2ns(fullname)} in ${file}`);
                     }
-                    this.modules[_ns].events[_name].usage.push(dot2ns(_fullname));
+                    this.modules[_ns].events[_name].usage.push(dot2ns(fullname));
                 }
             }
+            if (content.data.wrappers) {
+                for (let wrapper of content.data.wrappers) {
+                    let _fullname = getFullName(wrapper.name, ns);
+                    let [_ns, _name] = getModuleAndName(_fullname);
+                    if (!this.modules[_ns] || !this.modules[_ns].templates[_name]) {
+                        throw new Error(`Unknown wrapper(template) ${dot2ns(_fullname)} for function ${dot2ns(fullname)} in ${file}`);
+                    }
+                    if (!this.accessChecker(file, this.modules[_ns].templates[_name].file)) {
+                        throw new Error(`Unknown wrapper(template) ${dot2ns(_fullname)} for function ${dot2ns(fullname)} in ${file}`);
+                    }
+                    if (this.modules[_ns].templates[_name].params.length !== wrapper.params.length + 1) {
+                        throw new Error(`Invalid wrapper ${dot2ns(_fullname)} for function ${dot2ns(fullname)} in ${file}: \nInvalid params length, expected ` +
+                        ` ${this.modules[_ns].templates[_name].params.length - 1} but got ${wrapper.params.length + 1}`);
+                    }
+                    wrapper.params.push(name + '_' + (content.data.num).toString());
+                    this.templates.push({
+                        ns: _ns,
+                        actualNs: ns,
+                        name: _name,
+                        actual: temp_name,
+                        params: this.modules[_ns].templates[_name].params.map((v, i)=>({name: v, content: wrapper.params[i]})),
+                        lineNum: content.src.lineNum,
+                        events: []
+                    })
+                    temp_name = name + '_' + (content.data.num++).toString();
+                }
+            }
+            this.modules[ns].defs[temp_name] = content;
             if (!processed) {
-                this.defs.push({ns: ns, name: name});
+                this.defs.push({ns: ns, name: temp_name});
             }
         } else {
             this.modules[ns].defs[name] = file;
         }
     }
 
+    //should be called before calling addDef
     addTemplate(template: {
         name: string,
         params: RegExp[],
@@ -178,10 +207,12 @@ export default class ModuleManager {
             if (!this.modules[ns].templates[n].usage[serialized]) {
                 this.templates.push({
                     ns: ns,
+                    actualNs: ns,
                     name: n,
                     actual: n + this.modules[ns].templates[n].num.toString(),
                     params: this.modules[ns].templates[n].params.map((v, i)=>({name: v, content: params[i]})),
-                    lineNum: lineNum
+                    lineNum: lineNum,
+                    events: []
                 })
                 this.modules[ns].templates[n].usage[serialized] = n + (this.modules[ns].templates[n].num++).toString();
             }

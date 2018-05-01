@@ -15,11 +15,11 @@ export function analyze(manager: ModuleManager, content: TreeNode, fn: TreeNode,
                 commands: [],
                 subcommand: temp.data.subcommand
             }, {file: fn.src.file, lineNum: temp.src.lineNum})
-            manager.addDef(root.data.ns + '.' + root.data.name + (root.data.num).toString(), def, fn.src.file, true);
+            manager.addDef(root.data.ns + '.' + root.data.name + '_' + (root.data.num).toString(), def, fn.src.file, true);
             fn.data.commands.push(
                 `execute unless score continue ${getObj()} matches 0 unless score break ${getObj()}` +
                 ` matches 0 unless score return ${getObj()} matches 0 run function `
-                + manager.parseName(root.data.name + (root.data.num++).toString(),
+                + manager.parseName(root.data.name + '_' + (root.data.num++).toString(),
                 fn.src.file, root.data.ns, temp.src.lineNum)
             )
             let result = analyze(manager, temp, def, root);
@@ -42,9 +42,9 @@ export function analyze(manager: ModuleManager, content: TreeNode, fn: TreeNode,
                 let def = new TreeNode('anonymous-fn', {
                     commands: []
                 }, {file: fn.src.file, lineNum: temp.src.lineNum})
-                manager.addDef(root.data.ns + '.' + root.data.name + (root.data.num).toString(), def, fn.src.file, true);
+                manager.addDef(root.data.ns + '.' + root.data.name + '_' + (root.data.num).toString(), def, fn.src.file, true);
                 fn.data.commands.push(temp.data.command.substring(0, temp.data.command.length - 1) + ' function '
-                    + manager.parseName(root.data.name + (root.data.num++).toString(), fn.src.file, root.data.ns, temp.src.lineNum))
+                    + manager.parseName(root.data.name + '_' + (root.data.num++).toString(), fn.src.file, root.data.ns, temp.src.lineNum))
                 let child = temp.child;
                 if (child) {
                     ({r, b, c} = analyze(manager, child, def, root));
@@ -52,7 +52,7 @@ export function analyze(manager: ModuleManager, content: TreeNode, fn: TreeNode,
                 break;
             }
             case 'while': {
-                let name = root.data.name + (root.data.num++).toString()
+                let name = root.data.name + '_' + (root.data.num++).toString()
                 let fullname = root.data.ns + '.' + name;
                 let def = new TreeNode('while-fn', {
                     commands: [],

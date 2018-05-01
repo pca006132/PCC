@@ -60,9 +60,14 @@ const parsers: BlockParser[] = [{
     process: function (l, d, s, r) {
         return (m)=>{
             let events = [];
+            let wrappers: {name: string, params: string[]}[] = [];
             if (d['annotation']['event']) {
                 events = d['annotation']['event'].slice().map(v=>v[0]);
                 delete d['annotation']['event'];
+            }
+            if (d['annotation']['wrapper']) {
+                wrappers = d['annotation']['wrapper'].slice();
+                delete d['annotation']['wrapper'];
             }
             for (let k of Object.keys(d['annotation'])) {
                 throw new LineError('Unused annotation', d['annotation'][k][0][1]);
@@ -70,6 +75,7 @@ const parsers: BlockParser[] = [{
             let node = new TreeNode(this.name, {
                 name: m[1],
                 events: events,
+                wrappers: wrappers,
                 ns: d['module'] || getDefaultNs()
             }, {file: l.item.file, lineNum: l.item.lineNum});
             s.push(node);
@@ -137,7 +143,7 @@ const parsers: BlockParser[] = [{
     skipChildren: false,
     acceptAnnotation: true,
     initialize: function (d, r) {
-        d[this.name] = [];
+        d['annotation'] = {};
     },
     match: function (l) {
         return this.pattern.exec(l);
@@ -150,6 +156,37 @@ const parsers: BlockParser[] = [{
             d['annotation']['event'].push(
                 ...m[1].split(',').map(m => [m.trim(), l])
             );
+        }
+    }
+}, {
+    name: 'wrapper-annotation',
+    prefix: '@wrapper',
+    pattern: /^@wrapper (.+)$/,
+    topLevel: true,
+    skipChildren: false,
+    acceptAnnotation: true,
+    initialize: function (d, r) {
+        d['annotation'] = {};
+    },
+    match: function (l) {
+        return this.pattern.exec(l);
+    },
+    process: function (l, d, s, r) {
+        return (m)=> {
+            if (!d['annotation']['wrapper']) {
+                d['annotation']['wrapper'] = [];
+            }
+            let params: string[] = [];
+            let index = m[1].indexOf('(');
+            let name = m[1].trim();
+            if (index > -1) {
+                name = name.substring(0, index);
+                params = helper.getParams(m[1], index);
+            }
+            d['annotation']['wrapper'].push({
+                name: name,
+                params: params
+            });
         }
     }
 }, {
@@ -295,7 +332,11 @@ export function getBlocks(lines: Line) {
                 throw new LineError('Unexpected indentation', line);
             }
             top.name = 'anonymous';
-        } else if (getName(top) !== 'command') {
+        } else if (getName(top) === 'command') {
+            if (top instanceof TreeNode && top.data['command'].startsWith('execute') && top.data['command'].endsWith('run:')) {
+                top.name = 'anonymous';
+            }
+        } else {
             let skipped = false;
             for (let p of parsers) {
                 if (p.name === getName(top)) {
@@ -329,6 +370,9 @@ export function getBlocks(lines: Line) {
                     }
                     if (top instanceof TreeNode && getName(top) === 'command') {
                         //it should be changed to anonymous function
+                        if (!top.data['command'].startsWith('execute') || !top.data['command'].endsWith('run:')) {
+                            throw new LineError('Unexpected indentation', line);
+                        }
                         top.name = 'anonymous';
                     }
                     if (!p.acceptAnnotation) {
@@ -419,7 +463,11 @@ export function getFunction(name: string, ns: string, file: string, lineNum: num
                 throw new LineError('Unexpected indentation', line);
             }
             top.name = 'anonymous';
-        } else if (getName(top) !== 'command') {
+        } else if (getName(top) === 'command') {
+            if (top instanceof TreeNode && top.data['command'].startsWith('execute') && top.data['command'].endsWith('run:')) {
+                top.name = 'anonymous';
+            }
+        } else {
             let skipped = false;
             for (let p of parsers) {
                 if (p.name === getName(top)) {
@@ -453,6 +501,9 @@ export function getFunction(name: string, ns: string, file: string, lineNum: num
                     }
                     if (top instanceof TreeNode && getName(top) === 'command') {
                         //it should be changed to anonymous function
+                        if (!top.data['command'].startsWith('execute') || !top.data['command'].endsWith('run:')) {
+                            throw new LineError('Unexpected indentation', line);
+                        }
                         top.name = 'anonymous';
                     }
                     if (!p.acceptAnnotation) {

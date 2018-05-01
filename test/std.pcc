@@ -1,0 +1,23 @@
+ref minecraft
+
+module std:
+    event tick
+    event load
+    event check
+
+    @event minecraft:load
+    def _init:
+        scoreboard objectives add common dummy
+        scoreboard players set #std common 0
+        scoreboard players set #error common 0
+
+    @event minecraft:tick
+    def tick:
+        execute if score #std common matches 0 run function #load
+        execute if score #std common matches 0 run function #check
+        execute if score #std common matches 0 run scoreboard players set #std common 1
+
+        # actual tick
+        execute if score #error common matches 0 run function #tick
+        execute if score #error common matches 1.. run say Error!
+        execute if score #error common matches 1.. run scoreboard players set #error common -1

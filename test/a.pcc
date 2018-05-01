@@ -1,24 +1,23 @@
 //-----a.pcc-----
 ref minecraft
 
-#define $c = test
+template useless($fn):
+    say useless
+    function $fn
 
-module a:
-    module b.c:
-        def simple:
-            while entity @s[tag=simple] && not entity @s[tag=young]:
-                function ../../a(pca, dummy)
-    template a($a, $b):
-        say $a $c
-        while score @s $b > $a $b:
-            scoreboard players remove @s $b 1
+template stack($name, $fn):
+    scoreboard players add #stack common 1
+    execute if score #stack_max common < #stack common run:
+        summon area_effect_cloud ~ ~ ~ {Duration:2147483647,Tags:[stack,new]}
+        scoreboard players add #stack_max common 1
+        scoreboard players operation @e[tag=new,tag=stack] common = #stack_max common
+        tag @e[tag=new,tag=stack] remove new
+    execute as @e[tag=stack] if score @s common = #stack common run data entity @s merge {CustomName:$name}
+    function $fn
+    scoreboard players remove #stack common 1
 
-    @event minecraft:tick
-    def test:
-        say hi
-            bla\
-            bla
-        while true:
-            execute if score @s $c = pca $c run:
-                break
-            scoreboard players remove @s $c 1
+@event minecraft:load
+@wrapper useless
+@wrapper stack(something)
+def something:
+    say something

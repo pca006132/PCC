@@ -253,9 +253,6 @@ export function compile(defs: TreeNode[], events: object[], templates: object[],
     for (let e of events) {
         manager.addEvent(<{name: string, ns: string, file: string}>e);
     }
-    for (let d of defs) {
-        manager.addDef(d.data['ns'] + '.' + d.data['name'], d, d.src.file);
-    }
     for (let t of templates) {
         manager.addTemplate(<{
             name: string,
@@ -266,6 +263,10 @@ export function compile(defs: TreeNode[], events: object[], templates: object[],
             lineNum: number
         }>t);
     }
+    for (let d of defs) {
+        manager.addDef(d.data['ns'] + '.' + d.data['name'], d, d.src.file);
+    }
+
 
     for (let d of manager.defs) {
         let def = manager.modules[d.ns].defs[d.name];
@@ -296,9 +297,10 @@ export function compile(defs: TreeNode[], events: object[], templates: object[],
         try {
             let file = manager.modules[temp.ns].templates[temp.name].file;
             preprocessor.evaluate(line[0], context, getConstants(file, temp.params), getMacro(file));
-            let def = getFunction(temp.actual, temp.ns, file, temp.lineNum, line[0]);
+            let def = getFunction(temp.actual, temp.actualNs, file, temp.lineNum, line[0]);
             def.data['commands'] = [];
-            manager.addDef(temp.ns + '.' + temp.actual, def, file, true);
+            def.data['events'] = temp.events;
+            manager.addDef(temp.actualNs + '.' + temp.actual, def, file, true);
             let child = def.child;
             if (child) {
                 analyze(manager, child, def);

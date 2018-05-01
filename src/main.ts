@@ -11,7 +11,10 @@ let params = {
     objective: 'common',
     'namespace': 'system',
     output: 'out/',
-    global: {'minecraft': path.join(__dirname, '../default/minecraft.pcd')},
+    global: {
+        'minecraft': path.join(__dirname, '../default/minecraft.pcd'),
+        'std': path.join(__dirname, '../default/std.pcd')
+    },
     definitions: ''
 };
 

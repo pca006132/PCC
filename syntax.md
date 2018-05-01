@@ -132,6 +132,15 @@ def example$a:
     say hi!
 ```
 
+#### Wrapper Annotation
+可以为特定函数加入wrapper，在该函数前后执行别的命令。
+
+```
+@wrapper <template名称>(param...如果有的话)
+```
+template最后的param为function的实际名称，转换后第一个wrapper的名字为本function的名字，之后依次加上后缀。
+
+
 ### While 循环
 ```
 while ([not]if的子命令) && ([not]if的子命令)...:
