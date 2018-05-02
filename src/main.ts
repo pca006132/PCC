@@ -13,7 +13,8 @@ let params = {
     output: 'out/',
     global: {
         'minecraft': path.join(__dirname, '../default/minecraft.pcd'),
-        'std': path.join(__dirname, '../default/std.pcd')
+        'std': path.join(__dirname, '../default/std.pcd'),
+        'std:helper': path.join(__dirname, '../default/std_helper.pcc')
     },
     js: <string[]>[],
     definitions: ''

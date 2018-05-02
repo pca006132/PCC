@@ -1,0 +1,12 @@
+import std:helper
+
+#def(a)
+    say a
+    function b
+#def(b)
+    say b
+    execute if score @p common matches 1.. run:
+        #throw("Error! Your common score is larger than 0!")
+    function c
+#def(c)
+    say test3

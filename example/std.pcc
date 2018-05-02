@@ -5,11 +5,11 @@ module std:
     event load
     event check
 
-    @event minecraft:load
     def _init:
         scoreboard objectives add common dummy
-        scoreboard players set #std common 0
-        scoreboard players set #error common 0
+        #for $i in ['std', 'error', 'stack', 'stack_max', 'return', 'break', 'continue']:
+            scoreboard players set #$i common 0
+        kill @e[type=area_effect_cloud,tag=stack]
 
     @event minecraft:tick
     def tick:
@@ -19,5 +19,5 @@ module std:
 
         # actual tick
         execute if score #error common matches 0 run function #tick
-        execute if score #error common matches 1.. run say Error!
+        execute if score #error common matches 1.. run function print_error
         execute if score #error common matches 1.. run scoreboard players set #error common -1

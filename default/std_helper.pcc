@@ -1,0 +1,33 @@
+ref minecraft
+
+#macro #def($name):
+    @wrapper std:helper/stack($name)
+    def $name:
+#macro #throw($msg):
+    say $msg
+    scoreboard players set #error common 1
+    return
+
+module std.helper:
+    template stack($name, $fn):
+        scoreboard players add #stack common 1
+        execute if score #stack_max common < #stack common run:
+            summon area_effect_cloud ~ ~ ~ {Duration:2147483647,Tags:[stack,new]}
+            scoreboard players add #stack_max common 1
+            scoreboard players operation @e[tag=new,tag=stack] common = #stack_max common
+            tag @e[tag=new,tag=stack] remove new
+        execute as @e[tag=stack] if score @s common = #stack common run data merge entity @s {CustomName:"\"$name\""}
+        function $fn
+        execute if score #error common matches 0 run scoreboard players remove #stack common 1
+
+    def print_error:
+        while score #stack common matches 1..:
+            execute as @e[tag=stack] if score @s common = #stack common run tag @s add current
+            tellraw @a ["  at ",{"selector":"@e[tag=stack,tag=current]"}]
+            tag @e[tag=stack,tag=current] remove current
+            scoreboard players remove #stack common 1
+    def print_special:
+        tellraw @s ${JSON.stringify(['stack', 'error', 'return', 'continue', 'break'].map(m=>[m + ': ', {score:{name: '#' + m, objective: 'common'}}, '\n']))}
+    def reset_special:
+        #for $i in ['error', 'stack', 'return', 'break', 'continue']:
+            scoreboard players set #$i common 0
