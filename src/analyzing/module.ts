@@ -56,7 +56,16 @@ function getModuleAndName(fullname: string) {
 
 export default class ModuleManager {
     modules: {[key: string]: Module} = {};
-    templates: {ns: string, name: string, actualNs: string, actual: string, events: string[], params: {name: RegExp, content: string}[], lineNum: number}[] = [];
+    templates: {
+        ns: string,
+        name: string,
+        actualNs: string,
+        actual: string,
+        file: string,
+        parent: TreeNode | null,
+        events: string[],
+        params: {name: RegExp, content: string}[], lineNum: number
+    }[] = [];
     defs: {ns: string, name: string}[] = [];
     accessChecker: (a: string, b: string)=> boolean;
 
@@ -124,7 +133,9 @@ export default class ModuleManager {
                         actual: temp_name,
                         params: this.modules[_ns].templates[_name].params.map((v, i)=>({name: v, content: wrapper.params[i]})),
                         lineNum: content.src.lineNum,
-                        events: []
+                        events: [],
+                        parent: content,
+                        file: content.src.file
                     })
                     temp_name = name + '_' + (content.data.num++).toString();
                 }
@@ -214,7 +225,9 @@ export default class ModuleManager {
                     actual: n + this.modules[ns].templates[n].num.toString(),
                     params: this.modules[ns].templates[n].params.map((v, i)=>({name: v, content: params[i]})),
                     lineNum: lineNum,
-                    events: []
+                    events: [],
+                    parent: null,
+                    file: file
                 })
                 this.modules[ns].templates[n].usage[serialized] = n + (this.modules[ns].templates[n].num++).toString();
             }
@@ -244,7 +257,6 @@ export default class ModuleManager {
                     throw new Error('Unknown function ' + dot2ns(ns + '.' + n));
                 }
             }
-
             return dot2ns(ns + '.' + n);
         }
     }

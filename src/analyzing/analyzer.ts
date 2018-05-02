@@ -1,4 +1,4 @@
-import {TreeNode} from '../parsing/tree';
+import {TreeNode, printTree} from '../parsing/tree';
 import ModuleManager from './module';
 import {getObj} from '../config';
 
@@ -14,11 +14,11 @@ export function analyze(manager: ModuleManager, content: TreeNode, fn: TreeNode,
             let def = new TreeNode('anonymous-fn', {
                 commands: [],
                 subcommand: temp.data.subcommand
-            }, {file: fn.src.file, lineNum: temp.src.lineNum})
+            }, {file: fn.src.file, lineNum: temp.src.lineNum});
             manager.addDef(root.data.ns + '.' + root.data.name + '_' + (root.data.num).toString(), def, fn.src.file, true);
             fn.data.commands.push(
-                `execute unless score continue ${getObj()} matches 0 unless score break ${getObj()}` +
-                ` matches 0 unless score return ${getObj()} matches 0 run function `
+                `execute if score #continue ${getObj()} matches 0 if score #break ${getObj()}` +
+                ` matches 0 if score #return ${getObj()} matches 0 run function `
                 + manager.parseName(root.data.name + '_' + (root.data.num++).toString(),
                 fn.src.file, root.data.ns, temp.src.lineNum)
             )
@@ -71,18 +71,18 @@ export function analyze(manager: ModuleManager, content: TreeNode, fn: TreeNode,
                 if (child) {
                     ({r, b, c} = analyze(manager, child, def, root));
                     if (b) {
-                        fn.data.commands.push(`scoreboard players set break ${getObj()} 0`);
+                        fn.data.commands.push(`scoreboard players set #break ${getObj()} 0`);
                         b = false;
                     }
                     if (c) {
-                        fn.data.commands.push(`scoreboard players set continue ${getObj()} 0`);
+                        fn.data.commands.push(`scoreboard players set #continue ${getObj()} 0`);
                         c = false;
                     }
                 }
                 break;
             }
             case 'return': {
-                fn.data.commands.push(`scoreboard players set return ${getObj()} 1`);
+                fn.data.commands.push(`scoreboard players set #return ${getObj()} 1`);
                 return {
                     r: true,
                     b: b,
@@ -90,7 +90,7 @@ export function analyze(manager: ModuleManager, content: TreeNode, fn: TreeNode,
                 }
             }
             case 'break': {
-                fn.data.commands.push(`scoreboard players set break ${getObj()} 1`);
+                fn.data.commands.push(`scoreboard players set #break ${getObj()} 1`);
                 return {
                     r: r,
                     b: true,
@@ -98,7 +98,7 @@ export function analyze(manager: ModuleManager, content: TreeNode, fn: TreeNode,
                 }
             }
             case 'continue': {
-                fn.data.commands.push(`scoreboard players set continue ${getObj()} 1`);
+                fn.data.commands.push(`scoreboard players set #continue ${getObj()} 1`);
                 return {
                     r: r,
                     b: b,
@@ -110,20 +110,20 @@ export function analyze(manager: ModuleManager, content: TreeNode, fn: TreeNode,
 
     if (fn.name === 'while-fn') {
         if (c) {
-            fn.data.commands.push(`scoreboard players set continue ${getObj()} 0`);
+            fn.data.commands.push(`scoreboard players set #continue ${getObj()} 0`);
             c = false;
         }
         if (fn.data.subcommand) {
-            fn.data.commands.push(`execute unless score break ${getObj()} matches 0 unless score return ${getObj()} matches 0 ` +
+            fn.data.commands.push(`execute if score #break ${getObj()} matches 0 if score #return ${getObj()} matches 0 ` +
             fn.data.subcommand + ' run function ' + fn.data.fullname);
         } else {
-            fn.data.commands.push(`execute unless score break ${getObj()} matches 0 unless score return ${getObj()} matches 0 run function ` + fn.data.fullname);
+            fn.data.commands.push(`execute if score #break ${getObj()} matches 0 if score #return ${getObj()} matches 0 run function ` + fn.data.fullname);
         }
     }
     if (fn.name === 'def') {
         //regular function
         if (r) {
-            fn.data.commands.push(`scoreboard players set return ${getObj()} 0`);
+            fn.data.commands.push(`scoreboard players set #return ${getObj()} 0`);
         }
     }
 

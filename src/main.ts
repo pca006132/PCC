@@ -171,6 +171,8 @@ setNs(params['namespace']);
                     promises.push(outputFile(name, fn.commands.join('\n')));
                 }
                 for (let event of r.event) {
+                    if (event.usage.length === 0)
+                        continue;
                     let index = event.name.indexOf('.');
                     let name = params.output + event.name.substring(0, index) + '/tags/functions/' + event.name.substring(index+1).replace(/\./g, '/') + '.json';
                     promises.push(outputFile(name, JSON.stringify({values: event.usage})));

@@ -63,7 +63,7 @@ export async function load(reader: LineReader) {
                     indentTab = i[0].indexOf(' ') === -1;
                     indentSize = i[0].length;
                 }
-                if (indentTab !== (i[0].indexOf(' ') === -1) || i[0].length % indentSize !== 0) {
+                if (indentTab !== (i[0].indexOf('\t') > -1) || i[0].length % indentSize !== 0) {
                     throw new Error(`Indent error at line ${reader.lineNum}`);
                 }
                 indent = Math.floor(i[0].length / indentSize);
@@ -120,6 +120,7 @@ export async function load(reader: LineReader) {
                         }
                         let r = c.parse(m);
                         data[c.name].push(r.result);
+                        skipLevel = indent + 1;
                         addElement = (i, l)=> {
                             let last = data[c.name][data[c.name].length - 1];
                             last.content = r.addLine(last.content, i, l);

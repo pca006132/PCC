@@ -295,19 +295,25 @@ export function compile(defs: TreeNode[], events: object[], templates: object[],
         if (!line)
             continue;
         try {
-            let file = manager.modules[temp.ns].templates[temp.name].file;
+            let file = temp.file;
             preprocessor.evaluate(line[0], context, getConstants(file, temp.params), getMacro(file));
             let def = getFunction(temp.actual, temp.actualNs, file, temp.lineNum, line[0]);
+            //printTree(def);
             def.data['commands'] = [];
             def.data['events'] = temp.events;
             manager.addDef(temp.actualNs + '.' + temp.actual, def, file, true);
             let child = def.child;
+            let root = def;
+            if (temp.parent) {
+                root = temp.parent;
+            }
             if (child) {
-                analyze(manager, child, def);
+                analyze(manager, child, def, root);
             }
         } catch (e) {
-            throw new Error(`Error parsing generated template ${temp.ns + '.' + temp.name} ` +
-                `with params ${JSON.stringify(temp.params)}\n` + e.message);
+            e.message = `Error parsing generated template ${temp.ns + '.' + temp.name} ` +
+            `with params ${JSON.stringify(temp.params)}\n` + e.message;
+            throw e;
         }
     }
 
