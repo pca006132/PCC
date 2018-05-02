@@ -33,9 +33,14 @@ const parsers: BlockParser[] = [{
     },
     process: function (l, d, s, r) {
         return (m)=>{
+            let params = helper.getParams(m[2], 0);
+            for (let p of params) {
+                if (!p.startsWith('$'))
+                    throw new LineError('Template parameters should start with $', l);
+            }
             r[this.name].push({
                 name: m[1],
-                params: helper.getParams(m[2], 0).map(p=>new RegExp(helper.regexEscape(p), 'g')),
+                params: params.map(p=>new RegExp(helper.regexEscape(p), 'g')),
                 ns: d['module'] || getDefaultNs(),
                 content: [],
                 file: l.item.file,

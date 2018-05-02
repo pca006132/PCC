@@ -95,9 +95,14 @@ export async function load(reader: LineReader) {
                         if (indent !== 0) {
                             throw new Error(`Macro declaration should have no indent, at line ${reader.lineNum}`);
                         }
+                        let params = helper.getParams(m[2], 0);
+                        for (let p of params) {
+                            if (!p.startsWith('$'))
+                                throw new Error('Macro parameters should start with $, at line ' + reader.lineNum.toString());
+                        }
                         macro.push({
                             name: new RegExp('^' + helper.regexEscape(m[1]), 'g'),
-                            params: helper.getParams(m[2], 0).map(l=>new RegExp(helper.regexEscape(l), 'g')),
+                            params: params.map(l=>new RegExp(helper.regexEscape(l), 'g')),
                             content: []
                         });
                         skipLevel = indent + 1;
