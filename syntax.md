@@ -1,343 +1,303 @@
-# 语法
+# Syntax
+## Off-side Rule
+PCC uses [offside-rule](https://en.wikipedia.org/wiki/Off-side_rule), i.e. whitespace or tab indentation, to denote structure. Each file **must** have **consistent indentation**, with no mixed use of tab and spaces, and a constant number of characters to denote an indentation level.
 
-# 语法
-PCC使用缩进来区分代码块，要求用户使用一致的缩进格式（tab或者是2/3/4个空格）并且不能把tab和空格混用。
+> **Invalid example**
+> ```
+> def a:
+>   say using 2 spaces as indentation
+>       say and suddently jump to 6 spaces
+> ```
 
-所有生成的命令函数也应该以实体来执行，并且用户不应该使用以 `$` 字符开始的记分板变量(Objective)（因为这个是供生成出来的变量使用）。此外，用户需要运行 `_init` 命令函数以初始化整个系统。
+## Naming & Scoreboard Objective
+PCC would add *suffix* to inner functions. For example, the inner function of `a` may be named as `a_1`. We recommend users *not* to use `_(number)` as their function/template suffix, or this may cause naming conflict.
 
-## 基础语法
-### 空行
-空行就是那些完全没有字符或者只有tab/空格的行。那些空行会被忽略，而且不需理会其缩进格式。
-### 注释
-整行注释会被生成器忽略，其缩进格式也不会被理会。PCC提供了两种格式：单行及多行注释。
+> PCC have a checking system, so it would produce an error if naming conflicts happened.
+
+PCC by default, uses `common` as the scoreboard objective for transferring data, including `return`, `break` and `continue`. Users are required to add the objective **by themselves**.
+
+> The name of the scoreboard objective used can be changed in the config.
+
+## Comment & Empty Line
+There are two types of comment, single-line and multi-line, which would be neglected by the compiler.
+Single-line comments are lines starting with `//`.
+Multi-line comment begins with a line starting with `/*` and terminate at a line which ends with `*/`.
+Spaces by the two sides of the comment would be neglected, and would not be parsed as indentation.
+
+Empty lines, which are lines containing no character or only space characters, would be neglected.
+
+## Module System
+PCC uses module system for organizing functions and tags, and would be converted into namespace + directries structure in-game, which the root module is the namespace, and others are the directries.
+
+Users could use relative path to call/reference functions/templates/events(tag), which `foo` represents `foo` in the current module and `../foo` represents `foo` in the parent module, if it is used in annotations/function commands.
+However, the function command has to be called either directly or nested inside execute commands, commands inside JSON/NBT, i.e. clickEvent of `tellraw` command, would not be parsed.
+
+### Module Declaration
+```
+module <name>:
+    <module content>
+```
+Users could use `.` to denote submodule, for example:
+```
+module a.b:
+    //something
+
+//is identical to
+
+module a:
+    module b:
+        //something
 
 ```
-//单行
 
-/*
-  多
-  行
-    */
+### Event
+Events are implemented as function tags. Functions can use event annotation to *listen* to a particular event, and invoked when the event is triggered.
+
+Event declaration:
+```
+event <name>
 ```
 
-`/*`及`//`必须放在行的开始（缩进之后）以视为注释的开始，`*/`必须放在行末以视为注释的完结。故此PCC是**没有行内注释**的。
-
-PCC不容许嵌套注释，因为生成器不会理会注释的内容。
-### 命令
-基本上在命令函数内的每行字符都会视作命令，除非那行以某些特殊的关键词开始，如 `if` 等。
-
-但是，用户可以把命令分拆为几行，只要第二行及之后的行都增加一级缩进即可，那些行前后的空格会被移除，组合的时候行与行之间会加上空格。如果不想加上空格或者想保留某些空格，请在行末（想保留的空格之后）加上 `\` 字符，那样组合的时候那`\`字符就会被直接移除并且不会移除`\`前的空格或在之间加上空格。
-
-> 每行（命令）的开始不可以加上 `/`
-
-例子:
-
+Call event:
 ```
-execute if @s[tag=say]
-    as @e[c=-1]
-    at @s
-    run
-    say h\
-    i
-say bye
+[excute ... run ]function #<event name>
 ```
 
-等于
-
+### Named Function
 ```
-execute if @s[tag=say] as @e[c=-1] at @s run say hi
-
-say bye
+def <name>:
+    <commands>
 ```
 
-## 模块系统
-每个命令函数或事件（进度）都会放在一个模块内，这模块等于一个文件夹，也可以存放别的模块。根模块就是命名空间(namespace)。
-
-模块的全名:
-* 根模块: `<名称>:`
-* 不是根模块: `<父模块名称><模块名称>/`
-
-如 `test:`，`test:a/`，`test:a/b/`
-
-
-调用模块内容时，用户可以直接使用相对路径: `(子模块名称)/` 或 `../`代表父模块。
-
-模块、命令函数及事件名称只容许使用小写字母、数字、`_`及`-`。
-
-> 所有没有 `:` 字符的命令函数名称将会视为相对路径。如果命令函数名称存在圆括号`()`的话也会检查是否模板命令函数。
->
-> 调用命令函数会触发检测系统，检测该函数是否存在，不存在则会报错。
->
-> 只有在 `function` 命令（直接调用或者是嵌套在`execute`里的）及事件 annotation 里可以使用相对路径，其他地方（比如是`tellraw`的`clickEvent`里）不会被处理。
-
-### 模块定义
-```
-module <名称>:
-    <内容>
-```
-
-> 名称可以使用 `.` 代表子模块，如 `a.b.c` 代表 `a` 里的 `b` 里的 `c` 模块。
-
-### 事件
-定义一个事件，以函数标签实现。函数可以聆听该事件（使用annotation）或触发该事件（调用聆听了该事件的函数）。
-```
-event <名称>
-
-//example
-event test
-```
-
-事件annotation：需要放在函数定义上方
-```
-@event (事件名称，以逗号分隔)
-
-//example
-@event test, test2
-def bla:
-    say some command
-```
-
-### 一般命令函数
-定义一个有名字的命令函数。
-
-里面可以使用 `return` 语句来离开当前命令函数。
+### Function Template
+Function templates are functions with parameter, and would generate the respective function when called with parameters.
 
 ```
-def <名称>:
-    <命令>
+template <name>(<parameters...>):
+    <content>
 ```
 
-### 模板命令函数
-就是有参数的命令函数，根据调用的参数生成指定命令函数（把参数数值替换进去然后再进行处理）。除非被调用，否则不会生成，而且不同参数会生成出不同的命令函数。
+Parameters should start with a `$` character. Parameters in the content part would be replaced with their values respectively. Users could also pass macro names as parameters, and it would be parsed if reference to that parameter is at the start of the line.
 
-定义:
-```
-template <名称>(<$param1>, <$param2>...):
-    <命令>
-```
-
-每个参数都必须以`$`作开始，只能有英文字母、数字及`_`字符。
-
-调用与一般命令函数无异，只是需要加上参数，如`test(a, b, c)`。参数前后的空格会被移除，以逗号作为分隔符。如果发现参数内有逗号 `,` 或圆括号字符 `()` 或该参数是一个空参数，则以 `"` 符号包住整个参数，然后用另外一个 `\` 符号转义里面的 `\` 及 `"` 符号。
+Calling function templates is similar to calling ordinary functions, except there are parameters after the name of the template. Parameters may need to be quoted and escaped if it contains `,` or `()` characters, or if it is an empty parameter. The escape rule is similar to that of NBT strings.
 
 ```
-template example($a， $b):
-    say $a$b
+template example($a):
+    say $a
 
 def test:
-    function example(hi!, "")
+    function example(hi!)
 
-//这会生成一个命令函数（名字未必如此）
-def example$a:
+//it may generate a function like this:
+def example_1:
     say hi!
 ```
 
-#### Wrapper Annotation
-可以为特定函数加入wrapper，在该函数前后执行别的命令。
+## Function content
+### Commands
+*Commands* inside functions can use *line continuation* in case the command is too long, lines starting from the second line has to be indented. Lines would be joined with a space character in between, unless the previous line ends with a backslash `\\` character.
 
 ```
-@wrapper <template名称>(param...如果有的话)
-```
-template最后的param为function的实际名称，转换后第一个wrapper的名字为本function的名字，之后依次加上后缀。
-
-
-### While 循环
-```
-while ([not]if的子命令) && ([not]if的子命令)...:
-    命令
+def example:
+    say this is a long
+        long
+        lo\
+        ng line
+    //the previous command is equal to:
+    say this is a long long long line
 ```
 
-如果条件成功（not模式则是相反），则执行命令，然后回去检查条件。多个条件可以以 `&&` 连接，则需要全部条件都达成才会被触发。（先检查的循环）
+### Return Statement
+Users could use `return` statements inside a named/template function, to skip all the commands left in the named function.
 
-可以在里面使用 `break`语句以脱离当前循环（不会继续循环），或者是 `continue`语句以跳过这次循环（回去检查条件）。
+### While Loop
+```
+while <condition1> && <condition2> ... :
+    <content>
+```
+Conditions are the sub-command of the `if` sub-command of `execute` command, such as `entity @s[tag=a]`. Condition could start with a `not`, indicating the it would be satisfied if the condition is not true. Multiple conditions could be joined with `&&`, indicating all have to be satisfied in order to continue the loop.
 
-> 针对最内层的循环。
+Users could use `break` and `continue` statement to terminate loop or skip the current loop.
+
+### Anonymous Function
+Users could create anonymous function by indent the function content, and turn the `execute` command into something like `execute ... run:`.
 
 ```
-while entity @s[tag=bla]:
-    while not score @s a > pca a:
-        //不知道做啥处理
+execute if entity @s[tag=a] run:
+    say Anonymous function
 ```
 
-### 匿名命令函数
+> Note that the indent is relative to the last line of the previous command.
+> ```
+> execute as @a
+>     if score @s test > @s test2
+>     run:
+>         say Anonymous function
+> ```
+
+### Annotation
+Named function supports two types of annotation, including event annotation and wrapper annotation, which has to be placed before the named function.
+
+Event annotation would add the target function to the function tag.
 ```
-execute ... run:
-    命令
-```
-
-这会把里面的命令放在一个命令函数里然后把 `run` 之后插入命令函数调用。这一般是用作 `foreach` 实体。
-
-注意，命令部分的缩进层级必须比`run`所在的行多缩进一层，如
-
-```
-execute if @s[scores={test=1..}]
-    if @s[scores={bla=1}]
-    run:
-        commands...
-```
-
-## 文字处理
-用户可以使用这些特殊的处理方便编写大量命令，或者根据某些“常量”来生成命令，方便修改及阅读。
-
-常量、宏及JSON的定义需要放在文件的开始（`import`之后），并且不能被别的文字处理生成。常量及宏是没有范围(scope)的，除了`import`语句和这些常量类的定义以外，文件的其他部分都可以使用。
-
-### 常量
-用户可以定义常量，在文件其他地方调用时会被替换为其内容。
-
-常量名称需以 `$` 为开始，只能有英文字母（建议使用大写）、数字、`_`。与模板命令函数的参数类似，其名称会被替换为其内容。
-
-定义:
-```
-#define <名称> = <内容>
-```
-内容部分前后的空格会被移除。
-
-### 宏
-用户可以定义宏，宏被调用时会根据参数生成一堆行（命令）。宏的调用必须在独立一行，前后都不能有别的东西。在宏里调用别的宏也是容许的。
-
-命名规则与常量一致，除了第一个字符需是`#`。参数处理方式与模板命令函数一致，生成出来的行的会根据宏的调用的缩进进行处理。
-
-定义:
-```
-#macro <名字>($param1, $param2):
-    内容
+@event <event1>, <event2>...
 ```
 
-例子:
-```
-#macro #TEST($a):
-    say Hi!
-    say said $a.
+Wrapper annotation would turn the named function into an internal function, and replace the original function by the specified template function with provided parameters and the name of the internal function as the last parameter.
+It is similar to function decorator in Python. The top wrapper function is the outermost function, while the original named function would be the innermost function.
 
-def test:
-    #TEST(john)
+```
+@wrapper <name>[(<parameters>...)]
 ```
 
-处理后:
+Example:
 ```
-def test:
-    say Hi!
-    say said john
+template foo($fn);
+    say foo
+    function $fn
+
+template bar($a, $fn):
+    say bar $a
+    function $fn
+
+@wrapper foo
+@wrapper bar(a)
+def a:
+    say something
+
+//would generate:
+def a:
+    say foo
+    function system:a_1
+def a_1:
+    say bar a
+    function system:a_2
+def a_2:
+    say something
 ```
 
-> 可以定义不同参数数量的同一名称的宏来进行过载。
+## Preprocessing
+### Constants
+Define constants
+```
+#define <name> = <value>
+```
+
+The name of the constant in the file, except in `import` and `ref` statements, and constants/macro/JSON definitions, would be replaced by its value.
+
+> Note that the name of the constant must start with a `$` character, and the value would be trimmed.
 
 ### JSON
-用户可以定义JSON字串，接纳YAML格式（必须可以转为JSON）或原始JSON的格式，并且可以多行（之后的行的缩进必须比当前行多1）。其命名规则与常量一致。
-
-定义:
+Define JSON
 ```
-#json <名称>:
-    <内容>
+#json <name>:
+    <YAML>
 ```
 
-如
-```
-//JSON格式
-#json $TEST:
-    {
-        "a": 123,
-        "b": [
-            1,
-            2
-        ]
-    }
+The name of the JSON constant must start with a `$` character, and the value would be the result of YAML to JSON in 1 line.
 
-//YAML格式
-#json $TEST2:
-    a: 123
-    b:
-        - 1
-        - 2
+### Macro
+Define macro
+```
+#macro <name>(<params...>):
+    <content>
 ```
 
-使用的时候可以和普通常量一样直接写其名字。如果需要转义，则可以在后方写上 `(n)` n为转义次数，正整数。
-如 `$TEST` 或 `"$TEST(1)"` 均可。
+The name of the macro must start with a `#` character, name of the parameters should start with a `$` character. Parameters in the content would be replaced by their values respectively when called.
 
-> 注意，在json定义中，只能使用常量而不能使用别的东西
-
-### 条件生成
-> C++里的 `#if` 条件编译
-
-如果一个条件吻合，则生成指定内容，否则则会被忽略。（缩进-1）。
-
-格式:
-```
-#if <条件>:
-    内容...
-```
-
-和上方的if类似，但条件为JavaScript表达式（返回boolean）。
-
-### foreach 循环
-循环的每一次都会生成一次内容，每行的缩进会减1并且会替换变量为变量数值。容许嵌套。
-
-格式:
-```
-#for <变量> in <JS表达式>:
-    内容
-```
-
-变量的命名规则与模板命令函数的参数一致，JS表达式应该回传一个iterator或者是数组作为循环，我们提供 `range(start:0, end, step: 1)` 函数，与Python里的`range`一样。
-
+Users can call the macro simply by writing the name of the macro with parameters similar to template functions, but the line must contain the macro only.
 
 ```
-#for $a in range(3):
+#macro #test($a):
     say $a
+    say test
 
-//输出
+def test:
+    #test(a)
+
+//result
+def test:
+    say a
+    say test
+```
+
+### Conditional
+```
+#if <expression>:
+    <content>
+```
+
+If the result of the JavaScript expression is true, the content would be kept, but would be unindented. Otherwise, the content would not be kept.
+
+### Foreach Iteration
+```
+#for <variable> in <expression>:
+    <content>
+```
+
+The variable should start with a `$` character, and would be treated as constants above. The content would be generated for *n* times, where n is the number of iteration of the JavaScript expression provided.
+
+PCC provides a `range` function which should be identical to that in Python.
+
+```
+#for $i in range(5):
+    say $i
+
+//result
 say 0
 say 1
 say 2
+say 3
+say 4
 ```
 
-### 代码执行
-执行JS代码并且替换为其输出，多半在模板函数、宏、foreach循环内使用。
-
-格式:
+### Evaluate Expression
 ```
-${表达式}
+${<expression>}
 ```
 
-如
+This is an inline syntax, which would be replaced by its evaluated result.
+
 ```
 say ${1+1}
-//输出:
+//result
 say 2
 ```
 
-### 原始行
-不对该行进行任何文字处理、替换，那前缀`raw:`在最后会被移除。
+> Note that you cannot generate strings with line breaks, as those line breaks would not be processed.
 
-格式:
-```
-raw:<行内容>
-```
+### Raw Line
+Lines with the prefix `raw:` would not be processed by the preprocessor, and the prefix would be removed at last.
 
-## 多档案处理
+## Files Import & Referencing
+Import and referencing statements should be placed at the start of the file, before any other statements.
+
+Import and referencing other files allows users to use functions/events/templates/constants etc. which are defined in other files.
+
 ### Import
 ```
-import <文件路径>
-//如
+import <name/relative path from current directory>
+//such as
 import test
 ```
-> 文件路径相对于当前文件的路径
 
-用户可以import别的文件：
+Only the entry file and its dependencies (imported files) would be parsed and generated.
 
-* 别的pcc文件（其内容亦会被生成）:
-    * 导入常量
-    * 导入宏
-    * 使用命令函数/模板命令函数
-
-> Import语句需要在文件开始放置。
+> Note that users could define *global* files, the *name* would be turn into the path to that file as defined in the config.
 >
-> 只能使用此文件内`import`了的文件内定义的东西，而不能使用`import`了的文件`import`了的东西。
+> The file extension `.pcc` is not needed
 
-### Ref
+### Referencing
 ```
-ref <文件路径>
+ref <name/relative path from current directory>
 ```
 
-用户可以引入别的专案生成的资料文件里的函数、事件定义，以调用相关函数、事件。
-那文件不会包括在最终输出，只是用作检查模块调用。
+Reference the functions and events defined in the PCD file. PCD file is the function and event definitions of the project, which can be generated by specifying the `-d` parameter.
+
+The content of the PCD file would not be included in the output, it is only used for checking.
+
+> Note that users could define *global* files, the *name* would be turn into the path to that file as defined in the config.
+>
+> PCC by default defined a `minecraft` file for function tags.
+>
+> The file extension `.pcd` is not needed

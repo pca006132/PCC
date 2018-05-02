@@ -15,6 +15,7 @@ let params = {
         'minecraft': path.join(__dirname, '../default/minecraft.pcd'),
         'std': path.join(__dirname, '../default/std.pcd')
     },
+    js: <string[]>[],
     definitions: ''
 };
 
@@ -123,6 +124,18 @@ try {
                         params[key][k] = d[key][k];
                     }
                     break;
+                case 'js':
+                    if (!Array.isArray(d[key])) {
+                        console.log('Attribute error: incompatible type for ' + key);
+                        process.exit(1);
+                    }
+                    for (let j of d[key]) {
+                        if (typeof j !== 'string') {
+                            console.log('Attribute error: incompatible type for ' + key);
+                        }
+                        params.js.push(<string>j);
+                    }
+                    break;
                 default:
                     if (typeof(d[key]) !== 'string') {
                         console.log('Attribute error: incompatible type for ' + key);
@@ -144,7 +157,7 @@ setNs(params['namespace']);
 
 (async()=>{
     try {
-        let result = await parse(params.entry);
+        let result = await parse(params.entry, params.js);
         if (result) {
             if (params.definitions) {
                 await outputFile(params.definitions, getDefinitions(result.defs, result.events));
