@@ -11,31 +11,23 @@ Users can also define constants and macro, which would be replaced during compil
 
 ## Example
 ```
-ref minecraft
+import std:helper
 
-template useless($fn):
-    say useless
-    function $fn
+#define $stack = std:helper/stack
 
-template stack($name, $fn):
-    scoreboard players add #stack common 1
-    execute if score #stack_max common < #stack common run:
-        summon area_effect_cloud ~ ~ ~ {Duration:2147483647,Tags:[stack,new]}
-        scoreboard players add #stack_max common 1
-        scoreboard players operation @e[tag=new,tag=stack] common = #stack_max common
-        tag @e[tag=new,tag=stack] remove new
-    execute as @e[tag=stack] if score @s common = #stack common run data entity @s merge {CustomName:$name}
-    function $fn
-    scoreboard players remove #stack common 1
-
-@event minecraft:load
-@wrapper useless
-@wrapper stack(something)
-def something:
-    say something
-
-def nothing:
-    function something
+@wrapper $stack(a):
+def a:
+    say a
+    function b
+@wrapper $stack(b):
+def b:
+    say b
+    execute if score @p common matches 1.. run:
+        #throw("Error! Your common score is larger than 0!")
+    function c
+@wrapper $stack(c):
+def c:
+    say test3
 ```
 
 ## Usage
