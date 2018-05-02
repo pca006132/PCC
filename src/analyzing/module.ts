@@ -75,14 +75,14 @@ export default class ModuleManager {
             }
         }
         if (this.modules[ns].defs[name]) {
-            let conflict: string;
             let fn = this.modules[ns].defs[name];
             if (fn instanceof TreeNode) {
-                conflict = fn.src.file;
+                if (fn.name !== 'wrapper') {
+                    throw new Error(`Conflict function declaration ${dot2ns(fullname)} between ${file} and ${fn.src.file}`);
+                }
             } else {
-                conflict = fn;
+                throw new Error(`Conflict function declaration ${dot2ns(fullname)} between ${file} and ${fn}`);
             }
-            throw new Error(`Conflict function declaration ${dot2ns(fullname)} between ${file} and ${conflict}`);
         }
         if (content) {
             content.data.num = 1; //initialize a counter for anonymous function naming
@@ -101,6 +101,8 @@ export default class ModuleManager {
                 }
             }
             if (content.data.wrappers) {
+                this.modules[ns].defs[name] = new TreeNode('wrapper', null, {file: content.src.file, lineNum: content.src.lineNum});
+                content.data.generated = true;
                 for (let wrapper of content.data.wrappers) {
                     let _fullname = getFullName(wrapper.name, ns);
                     let [_ns, _name] = getModuleAndName(_fullname);

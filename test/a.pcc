@@ -21,3 +21,6 @@ template stack($name, $fn):
 @wrapper stack(something)
 def something:
     say something
+
+def nothing:
+    function something

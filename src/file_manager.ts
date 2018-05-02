@@ -351,6 +351,11 @@ export function getDefinitions(defs: TreeNode[], events: object[]) {
     let event: {name: string, ns: string}[] = [];
     for (let ns of Object.keys(manager.modules)) {
         for (let name of Object.keys(manager.modules[ns].defs)) {
+            let def = manager.modules[ns].defs[name];
+            if (def instanceof TreeNode) {
+                if (def.data && def.data.generated)
+                    continue;
+            }
             fn.push(ns + '.' + name);
         }
         for (let name of Object.keys(manager.modules[ns].events)) {
