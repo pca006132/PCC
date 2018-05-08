@@ -1,376 +1,119 @@
-import LineReader from './util/reader';
-import commentParser from './parsing/comment';
-import {Line} from './parsing/line';
-import {Macro} from './parsing/macro';
-import * as path from 'path';
-import * as preprocessor from './parsing/preprocessor';
-import * as sandbox from './util/sandbox';
-import {getBlocks, getFunction} from './parsing/block_parser';
-import {printTree, TreeNode} from './parsing/tree';
-import ModuleManager from './analyzing/module';
-import {analyze} from './analyzing/analyzer';
-import * as list from './util/linked_list';
-import {readFile} from 'fs-extra';
-import {getGlobal} from './config';
+import {Constant, Macro} from './preprocessor/typings';
+import {Context} from './util/sandbox';
+import Line from './util/line';
+import getLines from './preprocessor/line_processor';
+import getDeclarations from './preprocessor/declaration_processor';
+import expand from './preprocessor/expansion';
+import {getNameMap} from './config';
 
-const IMPORT_PATTERN = /^import (.*)/;
-const REF_PATTERN = /^ref (.*)/;
+import {join} from 'path';
+import {readFile, readJson} from 'fs-extra';
+
+const LINE_DELIMITER = /\r?\n/g;
 
 class PccFile {
-    reader: LineReader;
-    dependencies: string[] = [];
-    refs: string[] = [];
-    line: Line|null = null;
-    results: object = {};
     name: string;
+    lines: {next: Line} | null;
+    constants: Constant[] = [];
+    macros: Macro[] = [];
+    refs: string[] = [];
+    imports: string[] = [];
 
-    constants: {name: RegExp, content: string}[] = [];
-    macro: Macro[] = [];
-
-    constructor(name: string) {
-        this.reader = new LineReader(name);
+    constructor(name: string, lines: Iterable<string>) {
         this.name = name;
+        this.lines = getLines(name, lines);
+        if (this.lines) {
+            let r = getDeclarations(this.lines);
+            this.constants = r.constants;
+            this.imports = r.imports.map(n=>{
+                if (n in getNameMap()) {
+                    if (!getNameMap()[n].endsWith('pcc')) {
+                        throw new Error(`Error parsing ${name} dependencies:\nError importing ${n}, which is not a pcc file`);
+                    }
+                    return getNameMap()[n];
+                }
+                return join(name, n + '.pcc');
+            });
+            this.refs = r.refs.map(n=>{
+                if (n in getNameMap()) {
+                    if (!getNameMap()[n].endsWith('pcd')) {
+                        throw new Error(`Error parsing ${name} dependencies:\nError referencing ${n}, which is not a pcd file`);
+                    }
+                    return getNameMap()[n];
+                }
+                return join(name, n + '.pcd');
+            });;
+            this.macros = r.macros;
+        }
+    }
+}
+
+class FileManager {
+    imports: {[key: string]: PccFile} = {};
+    refs: {[key: string]: object} = {};
+    context: Context;
+
+    constructor(context: Context) {
+        this.context = context;
     }
 
-    async resolveDependencies() {
-        let comment = commentParser();
-        let directory = path.dirname(this.name);
+    async loadPcc(name: string) {
+        let content: string;
         try {
-            for await (const raw of this.reader.lines()) {
-                if (comment(raw.trim())) {
-                    continue;
-                }
-
-                let m = IMPORT_PATTERN.exec(raw.trimRight());
-                if (m) {
-                    let p = getGlobal()[m[1]];
-                    if (p) {
-                        if (!p.endsWith('pcc'))
-                            throw new Error(`Line ${this.reader.lineNum}: ${raw.trimRight()}\nCannot import definition as pcc file`);
-                        this.dependencies.push(p);
-                    } else {
-                        this.dependencies.push(path.join(directory, m[1]) + '.pcc');
-                    }
-                } else {
-                    m = REF_PATTERN.exec(raw.trimRight());
-                    if (m) {
-                        let p = getGlobal()[m[1]];
-                        if (p) {
-                            if (!p.endsWith('pcd'))
-                                throw new Error(`Line ${this.reader.lineNum}: ${raw.trimRight()}\nCannot import pcc file as definition`);
-                            this.refs.push(p);
-                            if (refs.indexOf(p) === -1) {
-                                refs.push(p);
-                            }
-                        } else {
-                            let p = path.join(directory, m[1]) + '.pcd';
-                            this.refs.push(p);
-                            if (refs.indexOf(p) === -1) {
-                                refs.push(p);
-                            }
-                        }
-                    } else {
-                        break;
-                    }
-                }
-            }
+            content = await readFile(name, 'utf-8');
         } catch (e) {
+            e.message = `Error parsing ${name}:\n` + e.message;
             throw e;
         }
 
-        for (const dependency of this.dependencies) {
-            if (!files[dependency]) {
-                let d = new PccFile(dependency);
-                files[dependency] = d;
-                try {
-                    await d.resolveDependencies();
-                } catch (e) {
-                    throw new Error(`Error parsing ${dependency}: \n${e}`);
-                }
-            }
-        }
-    }
+        this.imports[name] = new PccFile(name, content.split(LINE_DELIMITER));
 
-    async load() {
+        let refs = this.imports[name].refs.filter(r=>!(r in this.refs));
         try {
-            let result = await preprocessor.load(this.reader);
-            this.line = result.lines;
-            this.constants = result.constants;
-            this.macro = result.macro;
+            (await Promise.all(refs.map(r=>readJson(r)))).map((v, i)=>this.refs[refs[i]] = v);
         } catch (e) {
-            throw new Error(`Error loading ${this.name}: \n${e}`);
+            e.message = `Error parsing references for ${name}:\n` + e.message;
+            throw e;
         }
-    }
 
-    evaluate() {
-        if (this.line) {
-            preprocessor.evaluate(this.line, context, getConstants(this.name), getMacro(this.name));
-            this.results = getBlocks(this.line);
-        }
-    }
-
-    toCache() {
-        return JSON.stringify({
-            constants: this.constants.map(v=>({name: v.name.source, content: v.content})),
-            macro: this.macro.map(v=>({name: v.name.source, params: v.params, lines: v.content})),
-            defs: this.results['def'].map(d=>d.data.ns + '.' + d.data.name),
-            events: this.results['event'].map(e=>e.ns + '.' + e.name)
-        })
-    }
-}
-
-function getConstants(name: string, constants: {name: RegExp, content: string}[] = []) {
-    return function *() {
-        for (let c of constants) {
-            yield c;
-        }
-        for (let c of files[name].constants) {
-            yield c;
-        }
-        for (let d of files[name].dependencies) {
-            for (let c of files[d].constants) {
-                yield c;
-            }
-        }
-    }
-}
-function getMacro(name: string) {
-    return function *() {
-        for (let c of files[name].macro) {
-            yield c;
-        }
-        for (let d of files[name].dependencies) {
-            for (let c of files[d].macro) {
-                yield c;
-            }
-        }
-    }
-}
-function accessChecker(a: string, b: string) {
-    if (a === b) {
-        return true;
-    }
-    let f = files[a];
-    if (f) {
-        if (f.dependencies.indexOf(b) > -1) {
-            return true;
-        }
-        if (f.refs.indexOf(b) > -1) {
-            return true;
-        }
-    }
-    return false;
-}
-
-let files: {[key: string]: PccFile} = {};
-let refs: string[] = [];
-let context = new sandbox.Context();
-
-export async function parse(name: string, js: string[] = []) {
-    let scripts = (await Promise.all(
-        js.map(j=>readFile(path.resolve(j), 'utf-8'))
-    )).map((v, i)=>({
-        name: js[i],
-        code: v
-    }));
-    sandbox.loadScripts(scripts, context);
-
-    name = path.resolve(name);
-    let f = new PccFile(name);
-    files[name] = f;
-    try {
-        await f.resolveDependencies();
-    } catch (e) {
-        console.log('Error while resolving dependencies');
-        console.log((<Error>e).stack);
-        return;
-    }
-    let p = Promise.all(refs.map(r=>readFile(r, 'utf-8')));
-
-    try {
-        await Promise.all(Object.keys(files).map(n=>files[n].load()));
-    } catch (e) {
-        console.log('Error while loading files');
-        if ((<Error>e).stack)
-            console.log((<Error>e).stack);
-        return;
-    }
-    try {
-        Object.keys(files).forEach(v=>{
-            files[v].evaluate();
-        })
-    } catch (e) {
-        console.log('Error while parsing files');
-        console.log(e.toString());
-        if ((<Error>e).stack)
-            console.log((<Error>e).stack);
-        return;
-    }
-    let referencess: {file: string, content: object}[];
-    try {
-        referencess = (await p).map((v, i)=>({file: refs[i], content: JSON.parse(v)}));
-    } catch (e) {
-        console.log('Error while resolving references');
-        if ((<Error>e).stack)
-            console.log((<Error>e).stack);
-        return;
-    }
-
-    let defs: TreeNode[] = [];
-    for (let f of Object.keys(files)) {
-        defs.push(...(<TreeNode[]>files[f].results['def']));
-    }
-    let events: object[] = [];
-    for (let f of Object.keys(files)) {
-        events.push(...(<object[]>files[f].results['event']));
-    }
-    let templates: object[] = [];
-    for (let f of Object.keys(files)) {
-        templates.push(...(<object[]>files[f].results['template']));
-    }
-    return {
-        defs: defs,
-        events: events,
-        templates: templates,
-        refs: referencess
-    }
-}
-
-export function compile(defs: TreeNode[], events: object[], templates: object[], refs: {file: string, content: object}[]) {
-    let manager = new ModuleManager(accessChecker);
-    for (let f of refs) {
-        if (f.content['defs']) {
-            for (let d of f.content['defs']) {
-                manager.addDef(d, null, f.file);
-            }
-        }
-        if (f.content['events']) {
-            for (let e of f.content['events']) {
-                manager.addEvent({name: <string>e['name'], ns: <string>e['ns'], file: f.file});
-            }
-        }
-    }
-    for (let e of events) {
-        manager.addEvent(<{name: string, ns: string, file: string}>e);
-    }
-    for (let t of templates) {
-        manager.addTemplate(<{
-            name: string,
-            params: RegExp[],
-            ns: string,
-            content: Line[],
-            file: string,
-            lineNum: number
-        }>t);
-    }
-    for (let d of defs) {
-        manager.addDef(d.data['ns'] + '.' + d.data['name'], d, d.src.file);
-    }
-
-
-    for (let d of manager.defs) {
-        let def = manager.modules[d.ns].defs[d.name];
-        if (def instanceof TreeNode) {
-            def.data['commands'] = [];
-            if (def.child) {
-                analyze(manager, def.child, def);
-            }
-        }
-    }
-    while (manager.templates.length > 0) {
-        let temp = manager.templates.pop();
-        if (!temp) {
-            break;
-        }
-        let line = list.listToLinkedList(manager.modules[temp.ns].templates[temp.name].content.map(
-            //deep clone the line object
-            l=>({
-                content: l.item.content,
-                file: l.item.file,
-                lineNum: l.item.lineNum,
-                indent: l.item.indent,
-                generated: l.item.generated
-            })
-        ))
-        if (!line)
-            continue;
+        let imports = this.imports[name].imports.filter(i=>!(i in this.imports));
         try {
-            let file = temp.file;
-            preprocessor.evaluate(line[0], context, getConstants(file, temp.params), getMacro(file));
-            let def = getFunction(temp.actual, temp.actualNs, file, temp.lineNum, line[0]);
-            //printTree(def);
-            def.data['commands'] = [];
-            def.data['events'] = temp.events;
-            manager.addDef(temp.actualNs + '.' + temp.actual, def, file, true);
-            let child = def.child;
-            let root = def;
-            if (temp.parent) {
-                root = temp.parent;
-            }
-            if (child) {
-                analyze(manager, child, def, root);
-            }
+            await Promise.all(imports.map(i=>this.loadPcc(i)));
         } catch (e) {
-            e.message = `Error parsing generated template ${temp.ns + '.' + temp.name} ` +
-            `with params ${JSON.stringify(temp.params)}\n` + e.message;
+            e.message = `Error parsing dependencies for ${name}:\n` + e.message;
             throw e;
         }
     }
 
-    let fn: {name: string, commands: string[]}[] = [];
-    let event: {name: string, usage: string[]}[] = [];
-
-    for (let ns of Object.keys(manager.modules)) {
-        for (let name of Object.keys(manager.modules[ns].defs)) {
-            let def = manager.modules[ns].defs[name];
-            if (def instanceof TreeNode) {
-                fn.push({
-                    name: ns + '.' + name,
-                    commands: def.data['commands']
-                })
+    getConstants(name: string) {
+        let imports = this.imports;
+        return function *() {
+            //return the constants in the current file
+            for (let c of imports[name].constants) {
+                yield c;
+            }
+            //return the constants in the imported files
+            for (let i of imports[name].imports) {
+                for (let c of imports[i].constants) {
+                    yield c;
+                }
             }
         }
-        for (let name of Object.keys(manager.modules[ns].events)) {
-            event.push({
-                name: ns + '.' + name,
-                usage: manager.modules[ns].events[name].usage
-            })
-        }
     }
 
-    return {
-        fn: fn,
-        event: event
-    }
-}
-
-export function getDefinitions(defs: TreeNode[], events: object[]) {
-    let manager = new ModuleManager(accessChecker);
-    for (let e of events) {
-        manager.addEvent(<{name: string, ns: string, file: string}>e);
-    }
-    for (let d of defs) {
-        manager.addDef(d.data['ns'] + '.' + d.data['name'], null, d.src.file);
-    }
-
-    let fn: string[] = [];
-    let event: {name: string, ns: string}[] = [];
-    for (let ns of Object.keys(manager.modules)) {
-        for (let name of Object.keys(manager.modules[ns].defs)) {
-            let def = manager.modules[ns].defs[name];
-            if (def instanceof TreeNode) {
-                if (def.data && def.data.generated)
-                    continue;
+    getMacros(name: string) {
+        let imports = this.imports;
+        return function *() {
+            //return the macros in the current file
+            for (let c of imports[name].macros) {
+                yield c;
             }
-            fn.push(ns + '.' + name);
-        }
-        for (let name of Object.keys(manager.modules[ns].events)) {
-            event.push({ns: ns, name: name});
+            //return the macros in the imported files
+            for (let i of imports[name].imports) {
+                for (let c of imports[i].macros) {
+                    yield c;
+                }
+            }
         }
     }
-
-    return JSON.stringify({
-        defs: fn,
-        events: event
-    })
 }

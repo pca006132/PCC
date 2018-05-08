@@ -15,17 +15,17 @@ import std:helper
 
 #define $stack = std:helper/stack
 
-@wrapper $stack(a):
+@decorator $stack(a):
 def a:
     say a
     function b
-@wrapper $stack(b):
+@decorator $stack(b):
 def b:
     say b
     execute if score @p common matches 1.. run:
         #throw("Error! Your common score is larger than 0!")
     function c
-@wrapper $stack(c):
+@decorator $stack(c):
 def c:
     say test3
 ```

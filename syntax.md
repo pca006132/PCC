@@ -10,24 +10,27 @@ PCC uses [offside-rule](https://en.wikipedia.org/wiki/Off-side_rule), i.e. white
 > ```
 
 ## Naming & Scoreboard Objective
-PCC would add *suffix* to inner functions. For example, the inner function of `a` may be named as `a_1`. We recommend users *not* to use `_(number)` as their function/template suffix, or this may cause naming conflict.
+PCC will add *suffix* to inner functions. For example, the inner function of `a` may be named as `a_1`. We recommend users *not* to use `_(number)` as their function/template suffix, or this may cause naming conflict.
 
-> PCC have a checking system, so it would produce an error if naming conflicts happened.
+> PCC have a checking system, so it will return an error if naming conflicts happened.
 
 PCC by default, uses `common` as the scoreboard objective for transferring data, including `return`, `break` and `continue`. Users are required to add the objective **by themselves**.
 
 > The name of the scoreboard objective used can be changed in the config.
 
 ## Comment & Empty Line
-There are two types of comment, single-line and multi-line, which would be neglected by the compiler.
+There are two types of comment, single-line and multi-line, which will be neglected by the compiler.
 Single-line comments are lines starting with `//`.
 Multi-line comment begins with a line starting with `/*` and terminate at a line which ends with `*/`.
-Spaces by the two sides of the comment would be neglected, and would not be parsed as indentation.
+Spaces by the two sides of the comment will be neglected, and will not be parsed as indentation.
 
 Empty lines, which are lines containing no character or only space characters, would be neglected.
 
+## Line continuation
+`\` character before line break will trigger line continuation, if that line is not inside any comment.
+
 ## Module System
-PCC uses module system for organizing functions and tags, and would be converted into namespace + directries structure in-game, which the root module is the namespace, and others are the directries.
+PCC uses module system for organizing functions and tags, and will be converted into namespace + directries structure in-game, which the root module is the namespace, and others are the directries.
 
 Users could use relative path to call/reference functions/templates/events(tag), which `foo` represents `foo` in the current module and `../foo` represents `foo` in the parent module, if it is used in annotations/function commands.
 However, the function command has to be called either directly or nested inside execute commands, commands inside JSON/NBT, i.e. clickEvent of `tellraw` command, would not be parsed.
@@ -110,6 +113,21 @@ def example:
 ### Return Statement
 Users could use `return` statements inside a named/template function, to skip all the commands left in the named function.
 
+### If
+```
+if <condition>:
+    <content>
+elif <condition>:
+    <content>
+//...
+else:
+    <content>
+```
+
+Execute the content part if the condition is true. For else parts (elif means else if), there is another condition: the conditions in the upper blocks failed.
+
+See while loop for the condition.
+
 ### While Loop
 ```
 while <condition1> && <condition2> ... :
@@ -118,6 +136,8 @@ while <condition1> && <condition2> ... :
 Conditions are the sub-command of the `if` sub-command of `execute` command, such as `entity @s[tag=a]`. Condition could start with a `not`, indicating the it would be satisfied if the condition is not true. Multiple conditions could be joined with `&&`, indicating all have to be satisfied in order to continue the loop.
 
 Users could use `break` and `continue` statement to terminate loop or skip the current loop.
+
+> Condition would be rewritten, this is not the final version.
 
 ### Anonymous Function
 Users could create anonymous function by indent the function content, and turn the `execute` command into something like `execute ... run:`.
@@ -143,11 +163,11 @@ Event annotation would add the target function to the function tag.
 @event <event1>, <event2>...
 ```
 
-Wrapper annotation would turn the named function into an internal function, and replace the original function by the specified template function with provided parameters and the name of the internal function as the last parameter.
-It is similar to function decorator in Python. The top wrapper function is the outermost function, while the original named function would be the innermost function.
+Decorator annotation would turn the named function into an internal function, and replace the original function by the specified template function with provided parameters and the name of the internal function as the last parameter.
+The top Decorator function is the outermost function, while the original named function would be the innermost function.
 
 ```
-@wrapper <name>[(<parameters>...)]
+@Decorator <name>[(<parameters>...)]
 ```
 
 Example:
@@ -160,8 +180,8 @@ template bar($a, $fn):
     say bar $a
     function $fn
 
-@wrapper foo
-@wrapper bar(a)
+@Decorator foo
+@Decorator bar(a)
 def a:
     say something
 

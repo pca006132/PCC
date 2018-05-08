@@ -1,7 +1,7 @@
 ref minecraft
 
 #macro #def($name):
-    @wrapper std:helper/stack($name)
+    @decorator std:helper/stack($name)
     def $name:
 #macro #throw($msg):
     say $msg
@@ -9,13 +9,15 @@ ref minecraft
     return
 
 module std.helper:
+    def stack_inner:
+        summon area_effect_cloud ~ ~ ~ {Duration:2147483647,Tags:[stack,new]}
+        scoreboard players add #stack_max common 1
+        scoreboard players operation @e[tag=new,tag=stack] common = #stack_max common
+        tag @e[tag=new,tag=stack] remove new
     template stack($name, $fn):
         scoreboard players add #stack common 1
-        execute if score #stack_max common < #stack common run:
-            summon area_effect_cloud ~ ~ ~ {Duration:2147483647,Tags:[stack,new]}
-            scoreboard players add #stack_max common 1
-            scoreboard players operation @e[tag=new,tag=stack] common = #stack_max common
-            tag @e[tag=new,tag=stack] remove new
+        execute if score #stack_max common < #stack common run function stack_inner
+
         execute as @e[tag=stack] if score @s common = #stack common run data merge entity @s {CustomName:"\"$name\""}
         function $fn
         execute if score #error common matches 0 run scoreboard players remove #stack common 1

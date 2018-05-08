@@ -1,20 +1,18 @@
 import * as vm from 'vm';
 
-export type Macro = {[key: string]: (x: string[])=>
-    {content: string, indent: number}[]};
-export type CustomCommand = {[key: string]: (x: string[])=>
-    {content: string, indent: number}[]};
+const ESCAPE_PATTERN = /(\\|")/g;
 
 /**
  * Sandbox for each file
  */
 export class Context implements vm.Context {
     constructor() {
-        /** range generator:
-        * (end): Generate numbers from 0 to end step 1 (-1 if end < 0)
-        * (start, end): Generate numbers from start to end step 1 (-1 if end < start)
-        * (start, end, step): Generate numbers from start to end step x
-        */
+        /**
+         * range generator:
+         * (end): Generate numbers from 0 to end step 1 (-1 if end < 0)
+         * (start, end): Generate numbers from start to end step 1 (-1 if end < start)
+         * (start, end, step): Generate numbers from start to end step x
+         */
         this['range'] = function *(a: number, b: number|null = null, c: number|null = null) {
             let _b, _c: number;
             if (b === null) {
@@ -37,6 +35,13 @@ export class Context implements vm.Context {
 
             for (let i = a; compare(i); i += _c)
                 yield i;
+        }
+
+        this['escape'] = function escape(str: string, level = 1) {
+            for (let i = 0; i < level; i++) {
+                str = str.replace(ESCAPE_PATTERN, '\\$1');
+            }
+            return str;
         }
 
         vm.createContext(this);
