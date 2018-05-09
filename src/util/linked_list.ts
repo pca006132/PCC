@@ -18,6 +18,16 @@ export abstract class LinkedListNode {
         l.next = this;
         return this;
     }
+
+    insertBefore(l: this) {
+        if(this.before) {
+            this.before.next = l;
+        }
+        l.before = this.before;
+        l.next = this;
+        this.before = l;
+        return this;
+    }
 }
 
 
