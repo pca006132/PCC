@@ -53,7 +53,7 @@ export function getParams(str: string, offset: number = 0) {
                 case ')':
                     if (params.length !== 0 || temp.length !== 0)
                         params.push(temp.join('').trim());
-                    return {params: params, index: offset+1};
+                    return { params: params, index: offset + 1 };
                 default:
                     temp.push(str[offset]);
             }
@@ -62,16 +62,30 @@ export function getParams(str: string, offset: number = 0) {
     throw new Error('Not terminated parameters');
 }
 
+const ARGUMENT_SEPERATORS = [' ', '!', '&', '|'];
+
+/**
+ * Skip the argument and returns the index of the character after the argument
+ * @param str String that the argument is in
+ * @param i Index of the start of the argument
+ * @returns The index of the character after the argument
+ */
 export function skipArgument(str: string, i = 0) {
     let brackets: string[] = [];
     let inString = false;
     let escape = false;
-    while (str.length > ++i) {
+<<<<<<< HEAD
+    while (str.length -1 > i++) {
+=======
+    while (str.length - 1> i++) {
+>>>>>>> 804a1d190c98d4508aca37ec5ea5a40571fa1558
         if (inString) {
             if (escape) {
                 escape = false;
                 continue;
             }
+            if (inString)
+                throw new Error('not terminated string')
             switch (str[i]) {
                 case '\\':
                     escape = true;
@@ -81,12 +95,21 @@ export function skipArgument(str: string, i = 0) {
                     break;
             }
         } else {
+            if (ARGUMENT_SEPERATORS.indexOf(str[i]) > -1) {
+                if (brackets.length === 0)
+                    return i;
+            }
             switch (str[i]) {
                 case '"':
                     inString = true;
                     break;
+<<<<<<< HEAD
                 case ' ':
-                    return i+1;
+                    if (brackets.length === 0)
+                        return i;
+                    break;
+=======
+>>>>>>> 804a1d190c98d4508aca37ec5ea5a40571fa1558
                 case '{':
                     brackets.push('}');
                     break;

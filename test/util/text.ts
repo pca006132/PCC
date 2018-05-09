@@ -1,5 +1,5 @@
 import {expect} from 'chai';
-import {getParams} from '../../src/util/text';
+import {getParams, skipArgument} from '../../src/util/text';
 
 describe('getParams', function () {
     describe('basic cases', function () {
@@ -70,6 +70,26 @@ describe('getParams', function () {
         })
         it('should throw an error if there is no terminating parenthesis', function () {
             expect(()=>getParams('(')).to.throw('Not terminated parameters');
+        })
+    })
+
+    describe('test skip string', function () {
+        it('should return the str length', function () {
+            const input = 'nothingToSkip';
+            const result = skipArgument(input);
+            expect(result).to.equal(input.length);
+        })
+        it('should skip', function () {
+            const input = '@#&SANM;wrad '
+            const result = skipArgument(input);
+            expect(result).to.equal(12);
+        })
+        it('should error', function () {
+            expect(()=>skipArgument('[[] ')).to.throw('Brackets not match');
+            expect(()=>skipArgument('[[[]] ')).to.throw('Brackets not match');
+            expect(()=>skipArgument('[[][]} ')).to.throw('Brackets not match');
+            expect(()=>skipArgument('[}} ')).to.throw('Brackets not match');
+            expect(()=>skipArgument('[[]([)]} ')).to.throw('Brackets not match');
         })
     })
 })
