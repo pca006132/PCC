@@ -62,11 +62,13 @@ export function getParams(str: string, offset: number = 0) {
     throw new Error('Not terminated parameters');
 }
 
+const ARGUMENT_SEPERATORS = [' ', '!', '&', '|'];
+
 export function skipArgument(str: string, i = 0) {
     let brackets: string[] = [];
     let inString = false;
     let escape = false;
-    while (str.length > ++i) {
+    while (str.length - 1> i++) {
         if (inString) {
             if (escape) {
                 escape = false;
@@ -81,12 +83,14 @@ export function skipArgument(str: string, i = 0) {
                     break;
             }
         } else {
+            if (ARGUMENT_SEPERATORS.indexOf(str[i]) > -1) {
+                if (brackets.length === 0)
+                    return i;
+            }
             switch (str[i]) {
                 case '"':
                     inString = true;
                     break;
-                case ' ':
-                    return i+1;
                 case '{':
                     brackets.push('}');
                     break;
