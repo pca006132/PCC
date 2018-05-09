@@ -61,3 +61,49 @@ export function getParams(str: string, offset: number = 0) {
     }
     throw new Error('Not terminated parameters');
 }
+
+export function skipArgument(str: string, i = 0) {
+    let brackets: string[] = [];
+    let inString = false;
+    let escape = false;
+    while (str.length > ++i) {
+        if (inString) {
+            if (escape) {
+                escape = false;
+                continue;
+            }
+            switch (str[i]) {
+                case '\\':
+                    escape = true;
+                    break;
+                case '"':
+                    inString = false;
+                    break;
+            }
+        } else {
+            switch (str[i]) {
+                case '"':
+                    inString = true;
+                    break;
+                case ' ':
+                    return i+1;
+                case '{':
+                    brackets.push('}');
+                    break;
+                case '[':
+                    brackets.push(']');
+                    break;
+                case '}':
+                case ']':
+                    if (brackets.length === 0)
+                        throw new Error('Brackets not match');
+                    if (brackets.pop() !== str[i])
+                        throw new Error('Brackets not match');
+                    break;
+            }
+        }
+    }
+    if (brackets.length !== 0)
+        throw new Error('Brackets not match');
+    return i;
+}
