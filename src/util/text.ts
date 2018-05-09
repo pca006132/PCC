@@ -64,6 +64,12 @@ export function getParams(str: string, offset: number = 0) {
 
 const ARGUMENT_SEPERATORS = [' ', '!', '&', '|'];
 
+/**
+ * Skip the argument and returns the index of the character after the argument
+ * @param str String that the argument is in
+ * @param i Index of the start of the argument
+ * @returns The index of the character after the argument
+ */
 export function skipArgument(str: string, i = 0) {
     let brackets: string[] = [];
     let inString = false;
