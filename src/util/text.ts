@@ -74,11 +74,7 @@ export function skipArgument(str: string, i = 0) {
     let brackets: string[] = [];
     let inString = false;
     let escape = false;
-<<<<<<< HEAD
-    while (str.length -1 > i++) {
-=======
     while (str.length - 1> i++) {
->>>>>>> 804a1d190c98d4508aca37ec5ea5a40571fa1558
         if (inString) {
             if (escape) {
                 escape = false;
@@ -103,13 +99,6 @@ export function skipArgument(str: string, i = 0) {
                 case '"':
                     inString = true;
                     break;
-<<<<<<< HEAD
-                case ' ':
-                    if (brackets.length === 0)
-                        return i;
-                    break;
-=======
->>>>>>> 804a1d190c98d4508aca37ec5ea5a40571fa1558
                 case '{':
                     brackets.push('}');
                     break;
