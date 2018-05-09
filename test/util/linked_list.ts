@@ -1,6 +1,5 @@
 import {expect} from 'chai';
 import * as linkedList from '../../src/util/linked_list';
-import Line from '../../src/util/line'
 
 //simple LinkedListNode implementation for testing
 class Simple extends linkedList.LinkedListNode {
@@ -71,38 +70,26 @@ describe('linked list', function () {
         })
     })
     describe('insertAfter', function () {
-        it('should insert b after a', function () {
-            let a = new Line('a', 0, '', 0);
-            let start = {next: a};
-            a.before = start;
-
-            let b = new Line('b', 0, '', 0);
-            let result = b.insertAfter(a);
-
-            expect(result).to.equal(b);
-            expect(b.before).to.equal(a);
-            expect(a.next).to.equal(b);
+        it('should insert 5 after 4', function () {
+            let last: Simple;
+            for (let v of linkedList.iterate(list.next)) {
+                last = v;
+            }
+            let five = new Simple(5);
+            five.insertAfter(last!);
+            expect(five.before).to.equal(last);
+            expect(last!.next).to.equal(five);
         })
-        it('should insert b between a and c', function () {
-            let a = new Line('a', 0, '', 0);
-            let start = {next: a};
-            a.before = start;
+        it('should insert 5 between 0 and 1', function () {
+            let zero = list.next;
+            let one = zero.next!;
+            let five = new Simple(5);
+            five.insertAfter(zero);
 
-            let c = new Line('c', 0, '', 0);
-            c.insertAfter(a);
-
-            let b = new Line('b', 0, '', 0);
-            let result = b.insertAfter(a);
-
-            expect(result).to.equal(b);
-
-            //check a-b connection
-            expect(b.before).to.equal(a);
-            expect(a.next).to.equal(b);
-
-            //check b-c connection
-            expect(b.next).to.equal(c);
-            expect(c.before).to.equal(b);
+            expect(zero.next).to.equal(five);
+            expect(five.before).to.equal(zero);
+            expect(five.next).to.equal(one);
+            expect(one.before).to.equal(five);
         })
     })
     describe('replaceSegment', function () {

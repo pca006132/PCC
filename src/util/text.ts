@@ -74,7 +74,7 @@ export function skipArgument(str: string, i = 0) {
     let brackets: string[] = [];
     let inString = false;
     let escape = false;
-    while (str.length - 1> i++) {
+    do {
         if (inString) {
             if (escape) {
                 escape = false;
@@ -114,7 +114,7 @@ export function skipArgument(str: string, i = 0) {
                     break;
             }
         }
-    }
+    } while (str.length > ++i)
     if (brackets.length !== 0)
         throw new Error('Brackets not match');
     return i;

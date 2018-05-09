@@ -73,23 +73,33 @@ describe('getParams', function () {
         })
     })
 
-    describe('test skip string', function () {
-        it('should return the str length', function () {
-            const input = 'nothingToSkip';
-            const result = skipArgument(input);
-            expect(result).to.equal(input.length);
-        })
-        it('should skip', function () {
-            const input = '@#&SANM;wrad '
-            const result = skipArgument(input);
-            expect(result).to.equal(12);
-        })
-        it('should error', function () {
-            expect(()=>skipArgument('[[] ')).to.throw('Brackets not match');
-            expect(()=>skipArgument('[[[]] ')).to.throw('Brackets not match');
-            expect(()=>skipArgument('[[][]} ')).to.throw('Brackets not match');
-            expect(()=>skipArgument('[}} ')).to.throw('Brackets not match');
-            expect(()=>skipArgument('[[]([)]} ')).to.throw('Brackets not match');
-        })
+})
+describe('skipArgument', function () {
+    it('should return the str length', function () {
+        const input = 'nothingToSkip';
+        const result = skipArgument(input);
+        expect(result).to.equal(input.length);
+    })
+    it('should skip to the last space character', function () {
+        const input = '@#SANM;wrad '
+        const result = skipArgument(input);
+        expect(result).to.equal(input.length - 1);
+    })
+    it('should throw errors', function () {
+        expect(()=>skipArgument('[[]')).to.throw('Brackets not match');
+        expect(()=>skipArgument('[[[]]')).to.throw('Brackets not match');
+        expect(()=>skipArgument('[[][]}')).to.throw('Brackets not match');
+        expect(()=>skipArgument('[}}')).to.throw('Brackets not match');
+        expect(()=>skipArgument('[[]([)]}')).to.throw('Brackets not match');
+    })
+    it('should skip the middle argument', function () {
+        const input = 'foo test bar';
+        const result = skipArgument(input, 4);
+        expect(result).to.equal(8);
+    })
+    it('should skip to the & character', function () {
+        const input = 'foo&bar';
+        const result = skipArgument(input);
+        expect(result).to.equal(3);
     })
 })
