@@ -2,9 +2,22 @@
  * Linked list node, note that a {next: T} is needed for storing mutable linked list
  */
 
-export abstract class LinkedListNode<T extends LinkedListNode<T>> {
-    before?: T | {next: T};
+interface LinkedListHead<T> {
     next?: T;
+}
+
+export abstract class LinkedListNode {
+    before?: this | LinkedListHead<this>;
+    next?: this;
+
+    insertAfter(l: this) {
+        this.next = l.next;
+        if (l.next)
+            l.next.before = this;
+        this.before = l;
+        l.next = this;
+        return this;
+    }
 }
 
 
@@ -13,8 +26,8 @@ export abstract class LinkedListNode<T extends LinkedListNode<T>> {
  * @param item First item to be iterated
  * @param condition Function accepting the next item, returns if it should continue to iterate
  */
-export function *iterate<T extends LinkedListNode<T>>(item: T, condition: (item: T)=>boolean = _=>true): IterableIterator<T> {
-    let last: {next?: T|null} = item.before || {next: item};
+export function *iterate<T extends LinkedListNode>(item: T, condition: (item: T)=>boolean = _=>true): IterableIterator<T> {
+    let last: T | {next?: T} = item.before || {next: item};
     while (last.next && condition(last.next)) {
         let temp = last.next;
         yield temp;
@@ -35,7 +48,7 @@ export function *iterate<T extends LinkedListNode<T>>(item: T, condition: (item:
  * @param replacementStart The first node of *replacement*
  * @param replacementEnd The last node of *replacement*
  */
-export function replaceSegment<T extends LinkedListNode<T>>(start: T, end: T, replacementStart: T | null = null, replacementEnd: T | null = replacementStart) {
+export function replaceSegment<T extends LinkedListNode>(start: T, end: T, replacementStart: T | null = null, replacementEnd: T | null = replacementStart) {
     if (replacementStart === null || replacementEnd === null) {
         if (start.before) {
             start.before.next = end.next;

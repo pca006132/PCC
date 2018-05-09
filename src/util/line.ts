@@ -3,7 +3,7 @@ import { LinkedListNode } from "./linked_list";
 /**
  * Implementation of Line object using linked list
  */
-export default class Line extends LinkedListNode<Line> {
+export default class Line extends LinkedListNode {
     content: string;
     indent: number;
 
@@ -37,15 +37,6 @@ export default class Line extends LinkedListNode<Line> {
         } else {
             this.lineNum = [lineNum];
         }
-    }
-
-    insertAfter(l: this) {
-        this.next = l.next;
-        if (l.next)
-            l.next.before = this;
-        this.before = l;
-        l.next = this;
-        return this;
     }
 
     /**

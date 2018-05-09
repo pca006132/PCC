@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import * as linkedList from '../../src/util/linked_list';
 
 //simple LinkedListNode implementation for testing
-class Simple extends linkedList.LinkedListNode<Simple> {
+class Simple extends linkedList.LinkedListNode {
     id: number;
     constructor(id: number) {
         super();
