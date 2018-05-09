@@ -53,7 +53,7 @@ export function getParams(str: string, offset: number = 0) {
                 case ')':
                     if (params.length !== 0 || temp.length !== 0)
                         params.push(temp.join('').trim());
-                    return {params: params, index: offset+1};
+                    return { params: params, index: offset + 1 };
                 default:
                     temp.push(str[offset]);
             }
@@ -66,12 +66,14 @@ export function skipArgument(str: string, i = 0) {
     let brackets: string[] = [];
     let inString = false;
     let escape = false;
-    while (str.length > ++i) {
+    while (str.length -1 > i++) {
         if (inString) {
             if (escape) {
                 escape = false;
                 continue;
             }
+            if (inString)
+                throw new Error('not terminated string')
             switch (str[i]) {
                 case '\\':
                     escape = true;
@@ -86,7 +88,9 @@ export function skipArgument(str: string, i = 0) {
                     inString = true;
                     break;
                 case ' ':
-                    return i+1;
+                    if (brackets.length === 0)
+                        return i;
+                    break;
                 case '{':
                     brackets.push('}');
                     break;
