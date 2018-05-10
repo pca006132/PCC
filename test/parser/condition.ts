@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { conditionTokenizer, ReservedTokens, shuntingYard } from '../../src/parser/condition';
+import { conditionTokenizer, ReservedTokens, shuntingYard, evaluateRPN } from '../../src/parser/condition';
 
 describe('conditionTokenizer', function () {
     it('should return a list of tokens', function () {

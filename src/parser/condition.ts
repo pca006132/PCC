@@ -94,7 +94,7 @@ export function conditionTokenizer(input: string, i: number = 0, end = input.len
 /**
  * Shunting yard implementation, note that this would throw an error if there is any imbalance bracket
  * @param tokens Tokens to be parsed
- * @returns Parsed tokens in RPN
+ * @returns Parsed tokens in RPN order
  */
 export function shuntingYard(tokens: Token[]): (Condition|ReservedTokens.AND|ReservedTokens.OR)[] {
     let output: (Condition|ReservedTokens.AND|ReservedTokens.OR)[] = [];
@@ -168,7 +168,23 @@ export function shuntingYard(tokens: Token[]): (Condition|ReservedTokens.AND|Res
     return output;
 }
 
-export function evaluateRPN(tokens: (Condition|ReservedTokens.AND|ReservedTokens.OR)[]) {
+/**
+ * Convert the input into tokens in RPN order (just the combination of conditionTokenizer and shuntingYard)
+ * @param input String input
+ * @param i Start of the condition
+ * @param end Index of the end of the condition, default to the input length
+ * @returns Parsed tokens in RPN order
+ */
+export function toRPN(input: string, i = 0, end = input.length) {
+    return shuntingYard(conditionTokenizer(input, i, end));
+}
+
+/**
+ * Evaluate condition in RPN order, and returns the list of commands. The score in #if is the result of the condition
+ * @param tokens Tokens in RPN order
+ * @returns List of commands
+ */
+export function evaluateRPN(tokens: (Condition|ReservedTokens.AND|ReservedTokens.OR)[]): string[] {
     function getCondition(obj: string | number): string {
         if (typeof obj === 'string')
             return obj;
@@ -210,5 +226,9 @@ export function evaluateRPN(tokens: (Condition|ReservedTokens.AND|ReservedTokens
                 conditionStack.push(`${t.negation? 'unless':'if'} ${t.subcommand}`);
         }
     }
-
+    if (conditionStack.length !== 1) {
+        throw new Error('Invalid condition');
+    }
+    commands.push(`execute store success score #if ${getObjective()} ${getCondition(conditionStack.pop()!)}`);
+    return commands;
 }
