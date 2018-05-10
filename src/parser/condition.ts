@@ -2,7 +2,7 @@
  * parser used for parsing conditions
  */
 
-import {skipArgument} from '../util/text';
+import { skipArgument } from '../util/text';
 
 export enum ReservedTokens {
     OP, //opening parenthesis
@@ -82,7 +82,7 @@ export function conditionTokenizer(input: string, i: number = 0, end = input.len
                 if (isCondition(last)) {
                     last.subcommand += ' ' + input.substring(i, result);
                 } else {
-                    tokens.push({subcommand: input.substring(i, result), negation: false});
+                    tokens.push({ subcommand: input.substring(i, result), negation: false });
                 }
                 i = result - 1;
                 break;
@@ -131,9 +131,11 @@ export function shuntingYard(tokens: Token[]): Token[] {
                     operators.push(mutate(t));
                     break;
                 case ReservedTokens.CP:
+                    let poped = false;
                     while (operators.length > 0) {
                         let p = operators.pop()!;
                         if (p === ReservedTokens.OP) {
+                            poped = true;
                             break;
                         }
                         if (p === ReservedTokens.NOT) {
@@ -141,6 +143,9 @@ export function shuntingYard(tokens: Token[]): Token[] {
                         } else {
                             output.push(p);
                         }
+                    }
+                    if (!poped) {
+                        throw new Error('Imbalance parenthesis');
                     }
                     break;
                 case ReservedTokens.NOT:
