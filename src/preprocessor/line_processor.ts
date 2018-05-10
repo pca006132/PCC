@@ -3,7 +3,7 @@ import Line from '../util/line';
 const INDENT_PATTERN = /^\s+/;
 
 /**
- * Process lines and return a line objectb representing the start of the lines
+ * Process lines and return a line object representing the start of the lines
  * @param file File name of the input
  * @param lines Iterable line string
  */
@@ -25,19 +25,6 @@ export default function getLines(file: string, lines: Iterable<string>) {
         if (trimmed.length === 0)
             continue;
 
-        //actually the latter condition must be true,
-        //as there must be non-comment preceding lines to set joinLine to true
-        //however, due to type check, the latter condition is needed
-        if (joinLine && lineEnd) {
-            joinLine = trimmed.endsWith('\\');
-            if (joinLine) {
-                //remove the last `\` character
-                trimmed = trimmed.substring(0, trimmed.length - 1);
-            }
-            lineEnd.content += trimmed;
-            continue;
-        }
-
         //handle comment
         if (trimmed.startsWith('//'))
             continue;
@@ -46,6 +33,17 @@ export default function getLines(file: string, lines: Iterable<string>) {
         if (inComment) {
             if (trimmed.endsWith('*/'))
                 inComment = false;
+            continue;
+        }
+
+        //line continuation
+        if (joinLine) {
+            joinLine = trimmed.endsWith('\\');
+            if (joinLine) {
+                //remove the last `\` character
+                trimmed = trimmed.substring(0, trimmed.length - 1);
+            }
+            lineEnd!.content += trimmed;
             continue;
         }
 
@@ -79,6 +77,8 @@ export default function getLines(file: string, lines: Iterable<string>) {
         }
     }
 
+    if (joinLine)
+        throw new Error('No line after line continuation marker "\\"');
     if (lineStart) {
         let start = {next: lineStart};
         lineStart.before = start;

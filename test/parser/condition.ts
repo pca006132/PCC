@@ -63,7 +63,7 @@ describe('shuntingYard', function () {
             ReservedTokens.OR
         ])
     })
-    it("should throw a error about imbalance bracket", function () {
+    it('should throw an imbalance bracket error', function () {
         expect(() => shuntingYard([ReservedTokens.OP])).to.throw('Imbalance parenthesis');
         expect(() => shuntingYard([ReservedTokens.OP, ReservedTokens.CP, ReservedTokens.CP])).to.throw('Imbalance parenthesis');
     })

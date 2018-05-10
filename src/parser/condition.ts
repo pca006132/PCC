@@ -2,7 +2,8 @@
  * parser used for parsing conditions
  */
 
-import { skipArgument } from '../util/text';
+import {skipArgument} from '../util/text';
+import {getObjective} from '../config';
 
 export enum ReservedTokens {
     OP, //opening parenthesis
@@ -15,7 +16,6 @@ export enum ReservedTokens {
 interface Condition {
     subcommand: string;
     negation: boolean;
-    id?: number; //scoreboard fake player name id
 }
 
 type Token = ReservedTokens | Condition;
@@ -82,7 +82,7 @@ export function conditionTokenizer(input: string, i: number = 0, end = input.len
                 if (isCondition(last)) {
                     last.subcommand += ' ' + input.substring(i, result);
                 } else {
-                    tokens.push({ subcommand: input.substring(i, result), negation: false });
+                    tokens.push({subcommand: input.substring(i, result), negation: false});
                 }
                 i = result - 1;
                 break;
@@ -94,10 +94,10 @@ export function conditionTokenizer(input: string, i: number = 0, end = input.len
 /**
  * Shunting yard implementation, note that this would throw an error if there is any imbalance bracket
  * @param tokens Tokens to be parsed
- * @returns Parsed tokens
+ * @returns Parsed tokens in RPN
  */
-export function shuntingYard(tokens: Token[]): Token[] {
-    let output: Token[] = [];
+export function shuntingYard(tokens: Token[]): (Condition|ReservedTokens.AND|ReservedTokens.OR)[] {
+    let output: (Condition|ReservedTokens.AND|ReservedTokens.OR)[] = [];
     let operators: (ReservedTokens.OP | ReservedTokens.AND | ReservedTokens.OR | ReservedTokens.NOT)[] = [];
     let rev = false;
 
@@ -166,4 +166,49 @@ export function shuntingYard(tokens: Token[]): Token[] {
         }
     }
     return output;
+}
+
+export function evaluateRPN(tokens: (Condition|ReservedTokens.AND|ReservedTokens.OR)[]) {
+    function getCondition(obj: string | number): string {
+        if (typeof obj === 'string')
+            return obj;
+        return `if score #${obj} ${getObjective()} matches 1`;
+    }
+    let counter = 0;
+    let commands: string[] = [];
+    let conditionStack: (string|number)[] = [];
+
+    for (let t of tokens) {
+        switch (t) {
+            case ReservedTokens.AND: {
+                if (conditionStack.length < 2) {
+                    throw new Error('Invalid condition');
+                }
+                let b = getCondition(conditionStack.pop()!);
+                let a = getCondition(conditionStack.pop()!);
+                conditionStack.push(a + ' ' + b);
+            }
+            break;
+            case ReservedTokens.OR: {
+                if (conditionStack.length < 2) {
+                    throw new Error('Invalid condition');
+                }
+                let b = conditionStack.pop()!;
+                let a = conditionStack.pop()!;
+                if (typeof a !== 'number' && typeof b === 'number') {
+                    [a, b] = [b, a]; //swap a and b, such that a is a number
+                }
+                let id = (typeof a === 'number')? a : counter++;
+                if (typeof a !== 'number') {
+                    commands.push(`execute store success score #${id} ${getObjective()} ${a}`);
+                }
+                commands.push(`execute store success score #${id} ${getObjective()} ${getCondition(b)}`);
+                conditionStack.push(id);
+            }
+            break;
+            default:
+                conditionStack.push(`${t.negation? 'unless':'if'} ${t.subcommand}`);
+        }
+    }
+
 }
