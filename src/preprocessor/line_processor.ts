@@ -3,7 +3,7 @@ import Line from '../util/line';
 const INDENT_PATTERN = /^\s+/;
 
 /**
- * Process lines and return a line objectb representing the start of the lines
+ * Process lines and return a line object representing the start of the lines
  * @param file File name of the input
  * @param lines Iterable line string
  */
