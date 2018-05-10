@@ -1,7 +1,6 @@
 import getDeclarations from '../../src/preprocessor/declaration_processor';
 import Line from '../../src/util/line';
 import {expect} from 'chai';
-import * as linked_list from '../../src/util/linked_list';
 
 describe('declarationProcessor', () => {
     it('should parse constant with #define pattern', () => {
