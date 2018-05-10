@@ -19,7 +19,7 @@ describe("appendChildren", function () {
         expect(root.child).to.equal(A);
         expect(root.lastChild).to.equal(B);
     })
-    it("should set root child to first child and last child to first child|set A child to B and set A lastChild to C", function () {
+    it("should be {A: {B, C}}", function () {
         const root = new Tree<string>("root");
         const A = new Tree<string>("A");
         const B = new Tree<string>("B");
