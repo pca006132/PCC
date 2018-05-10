@@ -93,7 +93,7 @@ describe('linked list', function () {
         })
     })
     describe('replaceSegment', function () {
-        it('should seperate 1 from 0-4', function () {
+        it('should separate 1 from 0-4', function () {
             let nodes = [...(linkedList.iterate(list.next))];
             linkedList.replaceSegment(nodes[1], nodes[1]);
 
@@ -102,7 +102,7 @@ describe('linked list', function () {
             expect(nodes[1].before).to.be.undefined;
             expect(nodes[1].next).to.be.undefined;
         })
-        it('should seperate 1 and 2 from 0-4', function () {
+        it('should separate 1 and 2 from 0-4', function () {
             let nodes = [...(linkedList.iterate(list.next))];
             linkedList.replaceSegment(nodes[1], nodes[2]);
 
