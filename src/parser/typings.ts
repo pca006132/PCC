@@ -1,6 +1,6 @@
 import Line from '../util/line';
 
-export type Nodes = Module
+export type Node = Module
     | PlaceHolder
     | Template
     | Function
@@ -18,6 +18,13 @@ interface BaseNode {
 interface TopLevel {
     name: string;
     namespace: string[];
+}
+
+export interface ASTParser {
+    childrenParsers: string[]; //Names for the parsers allowed to parse its children
+    name: string;
+    prefix?: string;
+    parse: (Line)=>Node;
 }
 
 export interface Module extends BaseNode {
@@ -52,11 +59,14 @@ export interface EventAnnotation extends BaseNode, TopLevel {
 export interface If extends BaseNode {
     nodeType: 'if';
     isElse: boolean;
-    checks: string[]; //commands evaluating the conditions
+    hasElse: boolean;
+    evaluation: string[]; //commands evaluating the conditions
+    condition: string; //the actual execute command(without the function part) condition
 }
 export interface While extends BaseNode {
     nodeType: 'while';
-    checks: string[]; //commands evaluating the conditions
+    evaluation: string[]; //commands evaluating the conditions
+    condition: string; //the actual execute command(without the function part) condition
 }
 export interface Anonymous extends BaseNode {
     nodeType: 'anonymous';

@@ -99,9 +99,11 @@ export function conditionTokenizer(input: string, i: number = 0, end = input.len
 export function shuntingYard(tokens: Token[]): (Condition|ReservedTokens.AND|ReservedTokens.OR)[] {
     let output: (Condition|ReservedTokens.AND|ReservedTokens.OR)[] = [];
     let operators: (ReservedTokens.OP | ReservedTokens.AND | ReservedTokens.OR | ReservedTokens.NOT)[] = [];
+    //If the operator and conditions need to take negation
     let rev = false;
 
-    function mutate(token: ReservedTokens.AND | ReservedTokens.OR) {
+    //Negation for AND and OR
+    function flip(token: ReservedTokens.AND | ReservedTokens.OR) {
         if (rev && token === ReservedTokens.AND) {
             return ReservedTokens.OR;
         } else if (rev && token === ReservedTokens.OR) {
@@ -116,6 +118,13 @@ export function shuntingYard(tokens: Token[]): (Condition|ReservedTokens.AND|Res
         }
     }
 
+    /*
+        Algorithm: Basically it is just shunting yard, but with a bit additional logic to handle the not operator:
+        The `not` token affects the operand (maybe an expression in parenthesis) after it, it would reverse the rev flag,
+        and push a `not` token into the operators stack. When an `and`/`or`/`)` operator is read, it indicates an end of the previous
+        operand, thus it would try to pop the `not` tokens in the operators stack and switch back to the state before.
+    */
+
     for (let t of tokens) {
         if (isCondition(t)) {
             t.negation = rev;
@@ -128,9 +137,10 @@ export function shuntingYard(tokens: Token[]): (Condition|ReservedTokens.AND|Res
                 case ReservedTokens.AND:
                 case ReservedTokens.OR:
                     removeNots()
-                    operators.push(mutate(t));
+                    operators.push(flip(t));
                     break;
                 case ReservedTokens.CP:
+                    //Check if any opening parenthesis is poped off
                     let poped = false;
                     while (operators.length > 0) {
                         let p = operators.pop()!;
@@ -155,6 +165,7 @@ export function shuntingYard(tokens: Token[]): (Condition|ReservedTokens.AND|Res
             }
         }
     }
+    //pop the remaining operators in the stack
     while (operators.length > 0) {
         let p = operators.pop()!;
         if (p === ReservedTokens.OP) {
@@ -162,7 +173,7 @@ export function shuntingYard(tokens: Token[]): (Condition|ReservedTokens.AND|Res
         } else if (p === ReservedTokens.NOT) {
             rev = !rev;
         } else {
-            output.push(mutate(p));
+            output.push(flip(p));
         }
     }
     return output;
@@ -184,51 +195,86 @@ export function toRPN(input: string, i = 0, end = input.length) {
  * @param tokens Tokens in RPN order
  * @returns List of commands
  */
-export function evaluateRPN(tokens: (Condition|ReservedTokens.AND|ReservedTokens.OR)[]): string[] {
-    function getCondition(obj: string | number): string {
-        if (typeof obj === 'string')
-            return obj;
-        return `if score #${obj} ${getObjective()} matches 1`;
-    }
+export function evaluateRPN(tokens: (Condition|ReservedTokens.AND|ReservedTokens.OR)[]) {
+    //id counter, to prevent id conflict
     let counter = 0;
-    let commands: string[] = [];
-    let conditionStack: (string|number)[] = [];
+    //string: subcommand,
+    //mode: 0 for if, 1 for unless, 2 for store
+    //id: score id
+    let commands: (string|{mode: number, id: number})[][] = [];
+    let conditionStack: (string|{mode: number, id: number})[][] = [];
+    function toCommand(parts: (string|{mode: number, id: number})[]) {
+        return 'execute ' + parts.map(p=>{
+            if (typeof p === 'string')
+                return p;
+            let id;
+            if (p.id === counter)
+                id = 'if';
+            else
+                id = p.id;
+            if (p.mode === 0)
+                return `if score #${p.id} ${getObjective()} matches 1`;
+            if (p.mode === 1)
+                return `unless score #${p.id} ${getObjective()} matches 1`;
+            return `store success score #${p.id} ${getObjective()}`;
+        }).join(' ');
+    }
 
-    for (let t of tokens) {
+    for (let i = 0; i < tokens.length; i++) {
+        let t = tokens[i];
         switch (t) {
             case ReservedTokens.AND: {
+                //For the case of AND, we can just join the two conditions together in a chain
                 if (conditionStack.length < 2) {
                     throw new Error('Invalid condition');
                 }
-                let b = getCondition(conditionStack.pop()!);
-                let a = getCondition(conditionStack.pop()!);
-                conditionStack.push(a + ' ' + b);
+                let b = conditionStack.pop()!;
+                conditionStack[conditionStack.length - 1].push(...b);
             }
             break;
             case ReservedTokens.OR: {
+                /*
+                    For the case of OR, the logic is as follows:
+                    If one of the two operands is the result of an
+                    or operation before, use that id as the current id,
+                    and do not need to run check for that condition.
+                    Otherwise, use counter as the id and increment the counter by 1
+
+                    For the b part (the one runs after the first condition, it would only
+                    run if the score is not 1 already, otherwise it would overwrite the score.
+                */
                 if (conditionStack.length < 2) {
                     throw new Error('Invalid condition');
                 }
                 let b = conditionStack.pop()!;
                 let a = conditionStack.pop()!;
-                if (typeof a !== 'number' && typeof b === 'number') {
-                    [a, b] = [b, a]; //swap a and b, such that a is a number
+                if (typeof a[0] === 'string') {
+                    let b0 = b[0];
+                    if (typeof b0 !== 'string' && b0.mode === 0) {
+                        [a, b] = [b, a]; //swap a and b, such that a is a number
+                    }
                 }
-                let id = (typeof a === 'number')? a : counter++;
-                if (typeof a !== 'number') {
-                    commands.push(`execute store success score #${id} ${getObjective()} ${a}`);
+                let a0 = a[0];
+                let id = (typeof a0 === 'object' && a0.mode === 0)? a0.id : counter++;
+                if (typeof a0 !== 'object' || a0.mode !== 0) {
+                    commands.push([{mode: 2, id: id}, ...a]);
                 }
-                commands.push(`execute store success score #${id} ${getObjective()} ${getCondition(b)}`);
-                conditionStack.push(id);
+                commands.push([{mode: 1, id: id}, {mode: 2, id: id}, ...b]);
+                conditionStack.push([{mode: 0, id: id}]);
             }
             break;
             default:
-                conditionStack.push(`${t.negation? 'unless':'if'} ${t.subcommand}`);
+                //Just convert the condition to an /execute command's subcommand
+                conditionStack.push([`${t.negation? 'unless':'if'} ${t.subcommand}`]);
         }
     }
     if (conditionStack.length !== 1) {
         throw new Error('Invalid condition');
     }
-    commands.push(`execute store success score #if ${getObjective()} ${getCondition(conditionStack.pop()!)}`);
-    return commands;
+    counter--;
+
+    return {
+        evaluation: commands.map(c=>toCommand(c)),
+        condition: toCommand(conditionStack.pop()!)
+    }
 }
