@@ -32,6 +32,10 @@ function isCondition(obj: Token): obj is Condition {
  * @returns List of tokens of the condition
  */
 export function conditionTokenizer(input: string, i: number = 0, end = input.length): Token[] {
+    function checker(complete: boolean) {
+        if (tokens.length > 0 && complete == (isCondition(tokens[tokens.length - 1]) || tokens[tokens.length - 1] === ReservedTokens.CP))
+            throw new Error('Invalid condition');
+    }
     let tokens: Token[] = [];
     for (; i < end; i++) {
         switch (input[i]) {
@@ -39,27 +43,19 @@ export function conditionTokenizer(input: string, i: number = 0, end = input.len
                 //skip spaces
                 break;
             case '(':
-                //if the token before is a complete expression
-                if (tokens.length > 0 && (isCondition(tokens[tokens.length - 1]) || tokens[tokens.length - 1] === ReservedTokens.CP))
-                    throw new Error('Invalid condition');
+                checker(true);
                 tokens.push(ReservedTokens.OP);
                 break;
             case ')':
-                //if the token before is not a complete expression
-                if (tokens.length > 0 && tokens[tokens.length - 1] !== ReservedTokens.CP && !isCondition(tokens[tokens.length - 1]))
-                    throw new Error('Invalid condition');
+                checker(false);
                 tokens.push(ReservedTokens.CP);
                 break;
             case '!':
-                //if the token before is a complete expression
-                if (tokens.length > 0 && (isCondition(tokens[tokens.length - 1]) || tokens[tokens.length - 1] === ReservedTokens.CP))
-                    throw new Error('Invalid condition');
+                checker(true);
                 tokens.push(ReservedTokens.NOT);
                 break;
             case '&':
-                //if the token before is not a complete expression
-                if (tokens.length > 0 && tokens[tokens.length - 1] !== ReservedTokens.CP && !isCondition(tokens[tokens.length - 1]))
-                    throw new Error('Invalid condition');
+                checker(false);
                 if (input.length - 1 > i && input[++i] === '&') {
                     tokens.push(ReservedTokens.AND);
                 } else {
@@ -67,9 +63,7 @@ export function conditionTokenizer(input: string, i: number = 0, end = input.len
                 }
                 break;
             case '|':
-                //if the token before is not a complete expression
-                if (tokens.length > 0 && tokens[tokens.length - 1] !== ReservedTokens.CP && !isCondition(tokens[tokens.length - 1]))
-                    throw new Error('Invalid condition');
+                checker(false);
                 if (input.length - 1 > i && input[++i] === '|') {
                     tokens.push(ReservedTokens.OR);
                 } else {
@@ -121,7 +115,7 @@ export function shuntingYard(tokens: Token[]): (Condition|ReservedTokens.AND|Res
     /*
         Algorithm: Basically it is just shunting yard, but with a bit additional logic to handle the not operator:
         The `not` token affects the operand (maybe an expression in parenthesis) after it, it would reverse the rev flag,
-        and push a `not` token into the operators stack. When an `and`/`or`/`)` operator is read, it indicates an end of the previous
+        and push a `not` token into the operators stack. When a `&&`, `||`, `)` operator is read, it indicates an end of the previous
         operand, thus it would try to pop the `not` tokens in the operators stack and switch back to the state before.
     */
 

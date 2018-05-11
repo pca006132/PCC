@@ -10,6 +10,10 @@ export abstract class LinkedListNode {
     before?: this | LinkedListHead<this>;
     next?: this;
 
+    /**
+     * Insert the current line object after the line l
+     * @param l Line before the current line object
+     */
     insertAfter(l: this) {
         this.next = l.next;
         if (l.next)
