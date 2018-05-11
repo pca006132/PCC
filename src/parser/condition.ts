@@ -187,9 +187,10 @@ export function toRPN(input: string, i = 0, end = input.length) {
 /**
  * Evaluate condition in RPN order, and returns the list of commands. The score in #if is the result of the condition
  * @param tokens Tokens in RPN order
+ * @param finalIdOptimization Whether it is needed to convert the final id to #if
  * @returns List of commands
  */
-export function evaluateRPN(tokens: (Condition|ReservedTokens.AND|ReservedTokens.OR)[]) {
+export function evaluateRPN(tokens: (Condition|ReservedTokens.AND|ReservedTokens.OR)[], finalIdOptimization = true) {
     //id counter, to prevent id conflict
     let counter = 0;
     //string: subcommand,
@@ -202,7 +203,7 @@ export function evaluateRPN(tokens: (Condition|ReservedTokens.AND|ReservedTokens
             if (typeof p === 'string')
                 return p;
             let id;
-            if (p.id === counter)
+            if (finalIdOptimization && p.id === counter)
                 id = 'if';
             else
                 id = p.id;
@@ -210,7 +211,7 @@ export function evaluateRPN(tokens: (Condition|ReservedTokens.AND|ReservedTokens
                 return `if score #${p.id} ${getObjective()} matches 1`;
             if (p.mode === 1)
                 return `unless score #${p.id} ${getObjective()} matches 1`;
-            return `store success score #${p.id} ${getObjective()}`;
+            return `store result score #${p.id} ${getObjective()}`;
         }).join(' ');
     }
 

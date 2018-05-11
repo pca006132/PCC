@@ -23,8 +23,8 @@ interface TopLevel {
 export interface ASTParser {
     childrenParsers: string[]; //Names for the parsers allowed to parse its children
     name: string;
-    prefix?: string;
-    parse: (Line)=>Node;
+    prefix?: string[];
+    parse: (l: Line)=>Node;
 }
 
 export interface Module extends BaseNode {
@@ -59,7 +59,7 @@ export interface EventAnnotation extends BaseNode, TopLevel {
 export interface If extends BaseNode {
     nodeType: 'if';
     isElse: boolean;
-    hasElse: boolean;
+    hasElse?: boolean;
     evaluation: string[]; //commands evaluating the conditions
     condition: string; //the actual execute command(without the function part) condition
 }
