@@ -74,7 +74,7 @@ function parseElse(c: boolean, line: Line, context: sandbox.Context) {
                 } else {
                     end = l;
                 }
-                last = line;
+                last = l;
             }
         } else {
             throw line.getError('Empty #elif directive body');

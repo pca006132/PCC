@@ -22,9 +22,9 @@ interface TopLevel {
 
 export interface ASTParser {
     childrenParsers: string[]; //Names for the parsers allowed to parse its children
-    name: string;
-    prefix?: string[];
-    parse: (l: Line)=>Node;
+    name: string;              //Name of the parser
+    prefix: string[];          //Prefix of the line in order to match the parser, empty for command parser
+    parse: (l: Line)=>Node;    //Parse a line into a node
 }
 
 export interface Module extends BaseNode {
