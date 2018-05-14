@@ -3,11 +3,11 @@ import {If, ASTParser} from '../typings';
 import {toRPN, evaluateRPN, ReservedTokens} from '../condition';
 import {getObjective} from '../../config';
 
-export default class IfParser implements ASTParser {
-    childrenParsers = ['if', 'while', 'command', 'statement'];
-    name = 'if';
-    prefix = ['if', 'elif', 'else'];
-    parse = (l: Line): If => {
+export const IfParser: ASTParser = {
+    childrenParsers: ['if', 'while', 'command', 'statement'],
+    name: 'if',
+    prefix: ['if', 'elif', 'else'],
+    parse: (l: Line): If => {
         let isElse = !l.content.startsWith('if');
         if (!l.content.endsWith(':')) {
             throw l.getError('Invalid if statement: Expected ending `:` character');

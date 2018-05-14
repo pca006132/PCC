@@ -6,6 +6,7 @@ export type Node = Module
     | Function
     | Event
     | DecoratorAnnotation
+    | EventAnnotation
     | If
     | While
     | Anonymous
@@ -17,7 +18,7 @@ interface BaseNode {
 }
 interface TopLevel {
     name: string;
-    namespace: string[];
+    namespace?: string[]; //Should be set by the visitor
 }
 
 export interface ASTParser {
@@ -27,9 +28,8 @@ export interface ASTParser {
     parse: (l: Line)=>Node;    //Parse a line into a node
 }
 
-export interface Module extends BaseNode {
+export interface Module extends BaseNode, TopLevel {
     nodeType: 'module';
-    name: string;
 }
 export interface PlaceHolder extends BaseNode, TopLevel {
     nodeType: 'placeholder';
@@ -37,8 +37,8 @@ export interface PlaceHolder extends BaseNode, TopLevel {
 }
 export interface Template extends BaseNode, TopLevel {
     nodeType: 'template';
-    lines: Line;
-    params: string[];
+    lines: {next: Line};
+    params: RegExp[];
 }
 export interface Function extends BaseNode, TopLevel {
     nodeType: 'function';

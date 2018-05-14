@@ -3,11 +3,11 @@ import {Module, ASTParser} from '../typings';
 
 const PATTERN = /^module ([a-z0-9_\-\.]+):$/;
 
-export default class ModuleParser implements ASTParser {
-    childrenParsers = ['module', 'function', 'template', 'event', 'decorator-annotation', 'event-annotation'];
-    name = 'module';
-    prefix = ['module'];
-    parse = (l: Line): Module => {
+export const ModuleParser: ASTParser = {
+    childrenParsers: ['module', 'function', 'template', 'event', 'decorator-annotation', 'event-annotation'],
+    name: 'module',
+    prefix: ['module'],
+    parse: (l: Line): Module => {
         let m = PATTERN.exec(l.content);
         if (!m) {
             throw l.getError('Invalid module pattern');
@@ -17,8 +17,8 @@ export default class ModuleParser implements ASTParser {
         }
         return {
             nodeType: 'module',
-            source: l,
-            name: m[1]
+            name: m[1],
+            source: l
         }
     }
 }
