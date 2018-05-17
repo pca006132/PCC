@@ -1,8 +1,10 @@
 import Line from '../../util/line';
+import Tree from '../../util/tree';
+import {iterate} from '../../util/linked_list';
 import {getParams} from '../../util/text';
-import {DecoratorAnnotation, EventAnnotation, ASTParser} from '../typings';
+import {DecoratorAnnotation, EventAnnotation, AstParser, AstNode} from '../typings';
 
-export const DecoratorAnnotationParser: ASTParser = {
+export const DecoratorAnnotationParser: AstParser = {
     childrenParsers: [],
     name: 'decorator-annotation',
     prefix: ['@decorator'],
@@ -30,7 +32,7 @@ export const DecoratorAnnotationParser: ASTParser = {
     }
 }
 
-export const EventAnnotationParser: ASTParser = {
+export const EventAnnotationParser: AstParser = {
     childrenParsers: [],
     name: 'event-annotation',
     prefix: ['@event'],
@@ -40,6 +42,39 @@ export const EventAnnotationParser: ASTParser = {
             nodeType: 'event-annotation',
             name: name,
             source: l
+        }
+    }
+}
+
+export function annotationVisitor(n: Tree<AstNode|undefined, AstNode>) {
+    if (!n.child) {
+        return;
+    }
+    let events: EventAnnotation[] = [];
+    let decorators: DecoratorAnnotation[] = [];
+
+    for (let t of iterate(n.child)) {
+        switch (t.data.nodeType) {
+            case 'decorator-annotation':
+                decorators.push(t.data);
+                break;
+            case 'event-annotation':
+                events.push(t.data);
+                break;
+            case 'function':
+                t.data.events = events;
+                t.data.decorators = decorators;
+                events = [];
+                decorators = [];
+                break;
+            default:
+                if (events.length !== 0 || decorators.length !== 0) {
+                    throw t.data.source.getError('Expected function declaration after event/decorator annotation');
+                }
+                if (t.data.nodeType === 'module') {
+                    annotationVisitor(t);
+                }
+            break;
         }
     }
 }

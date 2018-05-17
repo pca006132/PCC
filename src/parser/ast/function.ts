@@ -1,9 +1,9 @@
 import Line from '../../util/line';
-import {Function, ASTParser} from '../typings';
+import {Function, AstParser} from '../typings';
 
 const PATTERN = /^def ([a-z0-9_\-]+):$/;
 
-export const FunctionParser: ASTParser = {
+export const FunctionParser: AstParser = {
     childrenParsers: ['if', 'while', 'command', 'statement'],
     name: 'function',
     prefix: ['def'],

@@ -1,6 +1,6 @@
 import Line from '../util/line';
 
-export type Node = Module
+export type AstNode = Module
     | PlaceHolder
     | Template
     | Function
@@ -16,16 +16,16 @@ export type Node = Module
 interface BaseNode {
     source: Line;
 }
-interface TopLevel {
+export interface TopLevel {
     name: string;
     namespace?: string[]; //Should be set by the visitor
 }
 
-export interface ASTParser {
+export interface AstParser {
     childrenParsers: string[]; //Names for the parsers allowed to parse its children
     name: string;              //Name of the parser
     prefix: string[];          //Prefix of the line in order to match the parser, empty for command parser
-    parse: (l: Line)=>Node;    //Parse a line into a node
+    parse: (l: Line)=>AstNode;    //Parse a line into a node
 }
 
 export interface Module extends BaseNode, TopLevel {

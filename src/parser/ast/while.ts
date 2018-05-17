@@ -1,9 +1,9 @@
 import Line from '../../util/line';
-import {While, ASTParser} from '../typings';
+import {While, AstParser} from '../typings';
 import {toRPN, evaluateRPN, ReservedTokens} from '../condition';
 import {getObjective} from '../../config';
 
-export const WhileParser: ASTParser = {
+export const WhileParser: AstParser = {
     childrenParsers: ['if', 'while', 'command', 'statement'],
     name: 'while',
     prefix: ['while'],

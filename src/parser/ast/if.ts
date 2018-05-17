@@ -1,9 +1,11 @@
 import Line from '../../util/line';
-import {If, ASTParser} from '../typings';
+import {If, AstParser, AstNode} from '../typings';
 import {toRPN, evaluateRPN, ReservedTokens} from '../condition';
 import {getObjective} from '../../config';
+import Tree from '../../util/tree';
+import {iterate} from '../../util/linked_list';
 
-export const IfParser: ASTParser = {
+export const IfParser: AstParser = {
     childrenParsers: ['if', 'while', 'command', 'statement'],
     name: 'if',
     prefix: ['if', 'elif', 'else'],
@@ -41,5 +43,26 @@ export const IfParser: ASTParser = {
             condition: result.condition,
             nodeType: 'if'
         }
+    }
+}
+
+export function ifVisitor(n: Tree<undefined|AstNode, AstNode>) {
+    if (!n.child) {
+        return;
+    }
+    let previous: If|undefined = undefined;
+    for (let t of iterate(n.child)) {
+        if (t.data.nodeType !== 'if') {
+            previous = undefined;
+        } else {
+            if (t.data.isElse) {
+                if (previous === undefined) {
+                    throw t.data.source.getError('Unexpected else statement');
+                }
+                previous.hasElse = true;
+            }
+            previous = t.data;
+        }
+        ifVisitor(t);
     }
 }

@@ -1,5 +1,5 @@
 import Line from '../../util/line';
-import {Command, Anonymous, ASTParser} from '../typings';
+import {Command, Anonymous, AstParser} from '../typings';
 
 export function CommandParser(l: Line): {Node: Command | Anonymous, childrenParsers: string[]} {
     if (l.content.startsWith('execute') && l.content.endsWith('run:')) {

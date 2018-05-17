@@ -1,11 +1,11 @@
 import Line from '../../util/line';
 import {iterate, replaceSegment} from '../../util/linked_list';
 import * as helper from '../../util/text';
-import {Template, ASTParser} from '../typings';
+import {Template, AstParser} from '../typings';
 
 const PATTERN = /^template ([a-z0-9_\-]+)(\(.*\)):$/;
 
-export const TemplateParser: ASTParser = {
+export const TemplateParser: AstParser = {
     childrenParsers: [],
     name: 'template',
     prefix: ['template'],
@@ -28,6 +28,7 @@ export const TemplateParser: ASTParser = {
         }
         //Seperate the lines from the original lines
         replaceSegment(l.next!, last);
+        l.next!.before = first;
         return {
             nodeType: 'template',
             lines: first,

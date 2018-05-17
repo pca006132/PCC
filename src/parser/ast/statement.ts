@@ -1,7 +1,7 @@
 import Line from '../../util/line';
-import {Statement, ASTParser} from '../typings';
+import {Statement, AstParser} from '../typings';
 
-export const StatementParser: ASTParser = {
+export const StatementParser: AstParser = {
     childrenParsers: [],
     name: 'statement',
     prefix: ['break', 'continue', 'return'],

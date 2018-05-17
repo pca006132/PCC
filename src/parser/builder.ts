@@ -1,4 +1,4 @@
-import {Node, ASTParser} from './typings';
+import {AstNode, AstParser} from './typings';
 import Tree from '../util/tree';
 import Line from '../util/line';
 import {iterate} from '../util/linked_list';
@@ -13,12 +13,12 @@ import {StatementParser} from './ast/statement';
 import {TemplateParser} from './ast/template';
 import {WhileParser} from './ast/while';
 
-const Parsers: ASTParser[] = [ModuleParser, TemplateParser, FunctionParser, EventParser,
+const Parsers: AstParser[] = [ModuleParser, TemplateParser, FunctionParser, EventParser,
     DecoratorAnnotationParser, EventAnnotationParser, IfParser, WhileParser, StatementParser];
 
-export function buildAst(lines: {next: Line}): Tree<undefined, Node> {
-    let root = new Tree<undefined, Node>(undefined);
-    let stack: {node: Tree<undefined, Node> | Tree<Node>, childrenParsers: string[]}[] = [
+export function buildAst(lines: {next: Line}): Tree<undefined, AstNode> {
+    let root = new Tree<undefined, AstNode>(undefined);
+    let stack: {node: Tree<undefined|AstNode, AstNode>, childrenParsers: string[]}[] = [
         {
             node: root,
             childrenParsers: ['module', 'function', 'template', 'event', 'decorator-annotation', 'event-annotation']
@@ -31,7 +31,7 @@ export function buildAst(lines: {next: Line}): Tree<undefined, Node> {
         if (l.indent !== stack.length - 1) {
             throw l.getError('Unexpected indent');
         }
-        let n: Node|undefined = undefined;
+        let n: AstNode|undefined = undefined;
         let childrenParsers: string[];
         for (let p of Parsers) {
             let match = false;
