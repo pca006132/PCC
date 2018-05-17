@@ -70,6 +70,7 @@ export interface While extends BaseNode {
 }
 export interface Anonymous extends BaseNode {
     nodeType: 'anonymous';
+    execute: string;       //execute command, should end with `run`
     endCommands: string[]; //commands that should be run at the end of the anonymous function
 }
 export interface Command extends BaseNode {
