@@ -74,7 +74,7 @@ export function annotationVisitor(n: Tree<AstNode|undefined, AstNode>) {
                 if (t.data.nodeType === 'module') {
                     annotationVisitor(t);
                 }
-            break;
+                break;
         }
     }
 }

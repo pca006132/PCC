@@ -1,5 +1,7 @@
 import Line from '../../util/line';
-import {Function, AstParser} from '../typings';
+import Tree from '../../util/tree';
+import {iterate} from '../../util/linked_list';
+import {Function, AstParser, AstNode} from '../typings';
 
 const PATTERN = /^def ([a-z0-9_\-]+):$/;
 
@@ -21,4 +23,22 @@ export const FunctionParser: AstParser = {
             source: l
         }
     }
+}
+
+export function getFunctions(m: Tree<undefined|AstNode, AstNode>): Function[] {
+    let functions: Function[] = [];
+    if (!m.child) {
+        return [];
+    }
+    for (let t of iterate(m.child)) {
+        switch (t.data.nodeType) {
+            case 'module':
+                functions = functions.concat(getFunctions(t));
+                break;
+            case 'function':
+                functions.push(t.data);
+                break;
+        }
+    }
+    return functions;
 }

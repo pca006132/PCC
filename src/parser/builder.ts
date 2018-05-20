@@ -3,14 +3,14 @@ import Tree from '../util/tree';
 import Line from '../util/line';
 import {iterate} from '../util/linked_list';
 
-import {DecoratorAnnotationParser, EventAnnotationParser} from './ast/annotation';
+import {DecoratorAnnotationParser, EventAnnotationParser, annotationVisitor} from './ast/annotation';
 import {CommandParser} from './ast/command';
-import {EventParser} from './ast/event';
-import {FunctionParser} from './ast/function';
-import {IfParser} from './ast/if';
-import {ModuleParser} from './ast/module';
-import {StatementParser} from './ast/statement';
-import {TemplateParser} from './ast/template';
+import {EventParser, getEvents} from './ast/event';
+import {FunctionParser, getFunctions} from './ast/function';
+import {IfParser, ifVisitor} from './ast/if';
+import {ModuleParser, moduleVisitor} from './ast/module';
+import {StatementParser, statementVisitor} from './ast/statement';
+import {TemplateParser, getTemplates} from './ast/template';
 import {WhileParser} from './ast/while';
 
 const Parsers: AstParser[] = [ModuleParser, TemplateParser, FunctionParser, EventParser,
@@ -61,4 +61,16 @@ export function buildAst(lines: {next: Line}): Tree<undefined, AstNode> {
         stack.push({node: tree, childrenParsers: childrenParsers!});
     }
     return root;
+}
+
+export function getElements(ast: Tree<undefined, AstNode>) {
+    moduleVisitor(ast);
+    annotationVisitor(ast);
+    statementVisitor(ast);
+    ifVisitor(ast);
+    return {
+        functions: getFunctions(ast),
+        templates: getTemplates(ast),
+        events: getEvents(ast)
+    }
 }

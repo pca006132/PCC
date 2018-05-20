@@ -1,5 +1,7 @@
 import Line from '../../util/line';
-import {Event, AstParser} from '../typings';
+import Tree from '../../util/tree';
+import {iterate} from '../../util/linked_list';
+import {Event, AstParser, AstNode} from '../typings';
 
 const PATTERN = /^event ([a-z0-9_\-]+)$/;
 
@@ -18,4 +20,22 @@ export const EventParser: AstParser = {
             source: l
         }
     }
+}
+
+export function getEvents(m: Tree<undefined|AstNode, AstNode>): Event[] {
+    let events: Event[] = [];
+    if (!m.child) {
+        return [];
+    }
+    for (let t of iterate(m.child)) {
+        switch (t.data.nodeType) {
+            case 'module':
+                events = events.concat(getEvents(t));
+                break;
+            case 'event':
+                events.push(t.data);
+                break;
+        }
+    }
+    return events;
 }

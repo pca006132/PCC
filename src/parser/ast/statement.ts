@@ -1,5 +1,7 @@
 import Line from '../../util/line';
-import {Statement, AstParser} from '../typings';
+import Tree from '../../util/tree';
+import {iterate} from '../../util/linked_list';
+import {Statement, AstParser, AstNode} from '../typings';
 
 export const StatementParser: AstParser = {
     childrenParsers: [],
@@ -24,6 +26,27 @@ export const StatementParser: AstParser = {
             nodeType: 'statement',
             statementType: type,
             source: l
+        }
+    }
+}
+
+export function statementVisitor(m: Tree<undefined|AstNode, AstNode>, inWhile = false) {
+    if (!m.child) {
+        return;
+    }
+    for (let t of iterate(m.child)) {
+        switch (t.data.nodeType) {
+            case 'while':
+                statementVisitor(t, true);
+                break;
+            case 'statement':
+                if (t.data.statementType !== 'return' && !inWhile) {
+                    throw t.data.source.getError(`${t.data.statementType} should be placed inside while loops`);
+                }
+                break;
+            default:
+                statementVisitor(t, inWhile);
+                break;
         }
     }
 }

@@ -29,7 +29,7 @@ function isTopLevel(n: AstNode): n is AstNode&TopLevel {
     return (<TopLevel>n).name !== undefined;
 }
 
-export function visitModule(m: Tree<undefined|AstNode, AstNode>, ns: string[] = []) {
+export function moduleVisitor(m: Tree<undefined|AstNode, AstNode>, ns: string[] = []) {
     if (!m.child) {
         return;
     }
@@ -38,7 +38,7 @@ export function visitModule(m: Tree<undefined|AstNode, AstNode>, ns: string[] = 
             t.data.namespace = ns;
             if (t.data.nodeType === 'module') {
                 //visit module
-                visitModule(t, [...ns, t.data.name]);
+                moduleVisitor(t, [...ns, t.data.name]);
             }
         }
     }

@@ -1,7 +1,8 @@
 import Line from '../../util/line';
+import Tree from '../../util/tree';
 import {iterate, replaceSegment} from '../../util/linked_list';
 import * as helper from '../../util/text';
-import {Template, AstParser} from '../typings';
+import {Template, AstParser, AstNode} from '../typings';
 
 const PATTERN = /^template ([a-z0-9_\-]+)(\(.*\)):$/;
 
@@ -37,4 +38,22 @@ export const TemplateParser: AstParser = {
             source: l
         }
     }
+}
+
+export function getTemplates(m: Tree<undefined|AstNode, AstNode>): Template[] {
+    let templates: Template[] = [];
+    if (!m.child) {
+        return [];
+    }
+    for (let t of iterate(m.child)) {
+        switch (t.data.nodeType) {
+            case 'module':
+                templates = templates.concat(getTemplates(t));
+                break;
+            case 'template':
+                templates.push(t.data);
+                break;
+        }
+    }
+    return templates;
 }
