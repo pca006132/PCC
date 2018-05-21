@@ -14,6 +14,13 @@ import expandInlineJs from './parsers/interpolation';
 import expandIteration from './parsers/iteration';
 import {expandMacro} from './parsers/macro';
 
+/**
+ * Expand the lines, which handles all the preprocessing features
+ * @param lines Line head to be processed
+ * @param constants Iterable constants to be replaced
+ * @param macro Iterable macro to be replaced
+ * @param context Context for running inline scripts
+ */
 export default function expand(lines: {next: Line}, constants: Iterable<Constant>, macro: Iterable<Macro>, context: sandbox.Context) {
     let temp: {next?: Line} = lines;
     let skipIndent = 0;

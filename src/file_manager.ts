@@ -29,7 +29,6 @@ class PccFile {
                 if (n[1] in getNameMap()) {
                     if (!getNameMap()[n[1]].endsWith('pcc')) {
                         throw n[0].getError(`Error in import statement: Only pcc file can be imported`)
-                        throw new Error(`Error parsing ${name} dependencies:\nError importing ${n}, which is not a pcc file`);
                     }
                     return <[Line, string]>[n[0], getNameMap()[n[1]]];
                 }
@@ -50,60 +49,78 @@ class PccFile {
 }
 
 class FileManager {
-    imports: {[key: string]: PccFile} = {};
-    refs: {[key: string]: object} = {};
+    /**
+     * Pcc file collection, the key is the file path of the file
+     */
+    pccFiles: {[key: string]: PccFile} = {};
+    /**
+     * Pcd file collection, the key is the file path of the file
+     */
+    pcdFiles: {[key: string]: object} = {};
     context: Context;
 
     constructor(context: Context) {
         this.context = context;
     }
 
-    async loadPcc(name: string) {
+    /**
+     * Load the pcc file, with all its dependencies and references
+     * @param filepath File path of the pcc file
+     */
+    async loadPcc(filepath: string) {
         let content: string;
         try {
-            content = await readFile(name, 'utf-8');
+            content = await readFile(filepath, 'utf-8');
         } catch (e) {
-            e.message = `Error parsing ${name}:\n` + e.message;
+            e.message = `Error parsing ${filepath}:\n` + e.message;
             throw e;
         }
 
-        this.imports[name] = new PccFile(name, content.split(LINE_DELIMITER));
+        this.pccFiles[filepath] = new PccFile(filepath, content.split(LINE_DELIMITER));
 
-        let refs = this.imports[name].refs.filter(r=>!(r[1] in this.refs));
+        let refs = this.pccFiles[filepath].refs.filter(r=>!(r[1] in this.pcdFiles));
         try {
-            (await Promise.all(refs.map(r=>readJson(r[1]).catch(e=>{throw r[0].getError(e);})))).map((v, i)=>this.refs[refs[i][1]] = v);
+            (await Promise.all(refs.map(r=>readJson(r[1]).catch(e=>{throw r[0].getError(e);})))).map((v, i)=>this.pcdFiles[refs[i][1]] = v);
         } catch (e) {
-            e.message = `Error parsing references for ${name}:\n` + e.message;
+            e.message = `Error parsing references for ${filepath}:\n` + e.message;
             throw e;
         }
 
-        let imports = this.imports[name].imports.filter(i=>!(i[1] in this.imports));
+        let imports = this.pccFiles[filepath].imports.filter(i=>!(i[1] in this.pccFiles));
         try {
             await Promise.all(imports.map(i=>this.loadPcc(i[1]).catch(e=>{throw i[0].getError(e);})));
         } catch (e) {
-            e.message = `Error parsing dependencies for ${name}:\n` + e.message;
+            e.message = `Error parsing dependencies for ${filepath}:\n` + e.message;
             throw e;
         }
     }
 
+    /**
+     * Return a generator, which yields all the constants which could be accessed by this file
+     * @param name File path of the pcc file
+     */
     getConstants(name: string) {
-        let imports = this.imports;
+        let pccFiles = this.pccFiles;
         return function *() {
             //return the constants in the current file
-            for (let c of imports[name].constants) {
+            for (let c of pccFiles[name].constants) {
                 yield c;
             }
             //return the constants in the imported files
-            for (let i of imports[name].imports) {
-                for (let c of imports[i[1]].constants) {
+            for (let i of pccFiles[name].imports) {
+                for (let c of pccFiles[i[1]].constants) {
                     yield c;
                 }
             }
         }
     }
 
+    /**
+     * Return a generator, which yields all the macros which could be accessed by this file
+     * @param name File path of the pcd file
+     */
     getMacros(name: string) {
-        let imports = this.imports;
+        let imports = this.pccFiles;
         return function *() {
             //return the macros in the current file
             for (let c of imports[name].macros) {

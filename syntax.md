@@ -27,7 +27,9 @@ Spaces by the two sides of the comment will be neglected, and will not be parsed
 Empty lines, which are lines containing no character or only space characters, would be neglected.
 
 ## Line continuation
-`\` character before line break will trigger line continuation, if that line is not inside any comment.
+`\` character before line break will trigger line continuation, if that line is not inside any comment. The line after it would be concatenated with it with the `\` character removed.
+
+> Note that the indent of the line after it would not be processed
 
 ## Module System
 PCC uses module system for organizing functions and tags, and will be converted into namespace + directries structure in-game, which the root module is the namespace, and others are the directries.
@@ -98,16 +100,14 @@ def example_1:
 
 ## Function content
 ### Commands
-*Commands* inside functions can use *line continuation* in case the command is too long, lines starting from the second line has to be indented. Lines would be joined with a space character in between, unless the previous line ends with a backslash `\\` character.
+Normal lines inside functions would be regarded as commands.
 
 ```
 def example:
-    say this is a long
-        long
-        lo\
-        ng line
-    //the previous command is equal to:
-    say this is a long long long line
+    say this is a long \
+        long line
+    //the previous command is equivalent to:
+    say this is a long long line
 ```
 
 ### Return Statement
@@ -147,14 +147,6 @@ execute if entity @s[tag=a] run:
     say Anonymous function
 ```
 
-> Note that the indent is relative to the last line of the previous command.
-> ```
-> execute as @a
->     if score @s test > @s test2
->     run:
->         say Anonymous function
-> ```
-
 ### Annotation
 Named function supports two types of annotation, including event annotation and wrapper annotation, which has to be placed before the named function.
 
@@ -167,7 +159,7 @@ Decorator annotation would turn the named function into an internal function, an
 The top Decorator function is the outermost function, while the original named function would be the innermost function.
 
 ```
-@Decorator <name>[(<parameters>...)]
+@decorator <name>[(<parameters>...)]
 ```
 
 Example:
@@ -180,8 +172,8 @@ template bar($a, $fn):
     say bar $a
     function $fn
 
-@Decorator foo
-@Decorator bar(a)
+@decorator foo
+@decorator bar(a)
 def a:
     say something
 

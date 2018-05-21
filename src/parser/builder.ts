@@ -18,7 +18,7 @@ const Parsers: AstParser[] = [ModuleParser, TemplateParser, FunctionParser, Even
 
 /**
  * Parse the lines and return the root node of the AST.
- * @param lines Lines to be parsed
+ * @param lines Line head of the lines to be parsed
  */
 export function buildAst(lines: {next: Line}): Tree<undefined, AstNode> {
     let root = new Tree<undefined, AstNode>(undefined);
@@ -38,11 +38,9 @@ export function buildAst(lines: {next: Line}): Tree<undefined, AstNode> {
         let n: AstNode|undefined = undefined;
         let childrenParsers: string[];
         parserFinder: for (let p of Parsers) {
-            let match = false;
             for (let prefix of p.prefix) {
-                //find the appropriate parser
+                //find the appropriate parser, we use prefix of the line as criteria
                 if (l.content.startsWith(prefix)) {
-                    match = true;
                     if (stack[stack.length-1].childrenParsers.indexOf(p.name) === -1) {
                         //this parser is not allowed inside a specific node
                         //for example, a function definition inside another function definition (in pcc)
@@ -55,7 +53,7 @@ export function buildAst(lines: {next: Line}): Tree<undefined, AstNode> {
             }
         }
         if (!n) {
-            //not handled by the parsers above -> maybe a command
+            //not handled by the parsers above -> maybe a command (could be the start of an anonymous function either)
             if (stack[stack.length-1].childrenParsers.indexOf('command') === -1) {
                 throw l.getError('Unexpected statement');
             }

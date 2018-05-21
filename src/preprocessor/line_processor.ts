@@ -4,6 +4,7 @@ const INDENT_PATTERN = /^\s+/;
 
 /**
  * Process lines and return a line object representing the start of the lines
+ * This would handle the line continuation feature
  * @param file File name of the input
  * @param lines Iterable line string
  */

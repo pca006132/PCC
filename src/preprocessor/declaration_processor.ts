@@ -11,7 +11,9 @@ import e from './parsers/reference';
 const parsers: DeclarationParser[] = [a, b, c, d, e];
 
 /**
- * Get and remove declarations including dependencies, constants and macro
+ * Get and remove declarations lines including dependencies, constants and macro
+ * Actual preprocessing is handled by ./expansion.ts when all pcc files are processed by this function,
+ * as there may be imported constants/macro that are currently unknown to the processor
  * @param lines Lines to be processed
  * @returns Result containing dependencies and declarations
  */
