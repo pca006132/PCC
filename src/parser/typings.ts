@@ -1,5 +1,9 @@
 import Line from '../util/line';
 
+/**
+ * Content for a tree node in AST
+ * Use nodeType to distinguish between different type of node
+ */
 export type AstNode = Module
     | PlaceHolder
     | Template

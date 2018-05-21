@@ -16,6 +16,10 @@ import {WhileParser} from './ast/while';
 const Parsers: AstParser[] = [ModuleParser, TemplateParser, FunctionParser, EventParser,
     DecoratorAnnotationParser, EventAnnotationParser, IfParser, WhileParser, StatementParser];
 
+/**
+ * Parse the lines and return the root node of the AST.
+ * @param lines Lines to be parsed
+ */
 export function buildAst(lines: {next: Line}): Tree<undefined, AstNode> {
     let root = new Tree<undefined, AstNode>(undefined);
     let stack: {node: Tree<undefined|AstNode, AstNode>, childrenParsers: string[]}[] = [
@@ -33,24 +37,25 @@ export function buildAst(lines: {next: Line}): Tree<undefined, AstNode> {
         }
         let n: AstNode|undefined = undefined;
         let childrenParsers: string[];
-        for (let p of Parsers) {
+        parserFinder: for (let p of Parsers) {
             let match = false;
             for (let prefix of p.prefix) {
+                //find the appropriate parser
                 if (l.content.startsWith(prefix)) {
                     match = true;
-                    break;
+                    if (stack[stack.length-1].childrenParsers.indexOf(p.name) === -1) {
+                        //this parser is not allowed inside a specific node
+                        //for example, a function definition inside another function definition (in pcc)
+                        throw l.getError('Unexpected statement');
+                    }
+                    n = p.parse(l);
+                    childrenParsers = p.childrenParsers;
+                    break parserFinder;
                 }
-            }
-            if (match) {
-                if (stack[stack.length-1].childrenParsers.indexOf(p.name) === -1) {
-                    throw l.getError('Unexpected statement');
-                }
-                n = p.parse(l);
-                childrenParsers = p.childrenParsers;
-                break;
             }
         }
         if (!n) {
+            //not handled by the parsers above -> maybe a command
             if (stack[stack.length-1].childrenParsers.indexOf('command') === -1) {
                 throw l.getError('Unexpected statement');
             }
@@ -60,14 +65,20 @@ export function buildAst(lines: {next: Line}): Tree<undefined, AstNode> {
         stack[stack.length-1].node.appendChildren(tree);
         stack.push({node: tree, childrenParsers: childrenParsers!});
     }
+
+    //set all the attributes in the nodes
+    moduleVisitor(root);
+    annotationVisitor(root);
+    statementVisitor(root);
+    ifVisitor(root);
     return root;
 }
 
+/**
+ * Return the functions, templates and events in the AST
+ * @param ast Root node of the AST
+ */
 export function getElements(ast: Tree<undefined, AstNode>) {
-    moduleVisitor(ast);
-    annotationVisitor(ast);
-    statementVisitor(ast);
-    ifVisitor(ast);
     return {
         functions: getFunctions(ast),
         templates: getTemplates(ast),

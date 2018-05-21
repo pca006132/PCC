@@ -46,6 +46,11 @@ export const EventAnnotationParser: AstParser = {
     }
 }
 
+/**
+ * Visit modules and add the annotations to the function node
+ * Throw error if there is no function node after the annotations
+ * @param n Tree node to be visited
+ */
 export function annotationVisitor(n: Tree<AstNode|undefined, AstNode>) {
     if (!n.child) {
         return;

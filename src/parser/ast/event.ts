@@ -22,6 +22,10 @@ export const EventParser: AstParser = {
     }
 }
 
+/**
+ * Get the event list in the node
+ * @param m Root node to be visited
+ */
 export function getEvents(m: Tree<undefined|AstNode, AstNode>): Event[] {
     let events: Event[] = [];
     if (!m.child) {

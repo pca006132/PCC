@@ -30,6 +30,11 @@ export const StatementParser: AstParser = {
     }
 }
 
+/**
+ * Visit all nodes, and throw error if break/continue statements are not put inside a while loop
+ * @param m Node to be visited
+ * @param inWhile Whether the node is inside a while loop
+ */
 export function statementVisitor(m: Tree<undefined|AstNode, AstNode>, inWhile = false) {
     if (!m.child) {
         return;

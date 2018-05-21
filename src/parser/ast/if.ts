@@ -46,6 +46,10 @@ export const IfParser: AstParser = {
     }
 }
 
+/**
+ * Set the hasElse flag of the if nodes, and throw error if there is no `if` node before an `elif`/`else` node.
+ * @param n Node to be visited
+ */
 export function ifVisitor(n: Tree<undefined|AstNode, AstNode>) {
     if (!n.child) {
         return;

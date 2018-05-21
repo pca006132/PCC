@@ -1,5 +1,6 @@
 let nameMap: {[key: string]: string} = {};
 let objective = 'common';
+let rootNs = ['system'];
 
 export function setNameMap(m: {[key: string]: string}) {
     nameMap = m;
@@ -12,4 +13,10 @@ export function setObjective(m: string) {
 }
 export function getObjective() {
     return objective;
+}
+export function setRootNs(ns: string[]) {
+    rootNs = ns;
+}
+export function getRootNs() {
+    return rootNs;
 }

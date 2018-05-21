@@ -40,6 +40,10 @@ export const TemplateParser: AstParser = {
     }
 }
 
+/**
+ * Get the template list in the node
+ * @param m Root node to be visited
+ */
 export function getTemplates(m: Tree<undefined|AstNode, AstNode>): Template[] {
     let templates: Template[] = [];
     if (!m.child) {

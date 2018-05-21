@@ -25,6 +25,10 @@ export const FunctionParser: AstParser = {
     }
 }
 
+/**
+ * Get the function list in the node
+ * @param m Root node to be visited
+ */
 export function getFunctions(m: Tree<undefined|AstNode, AstNode>): Function[] {
     let functions: Function[] = [];
     if (!m.child) {
