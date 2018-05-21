@@ -11,7 +11,7 @@ export default <DeclarationParser> {
             throw line.getError('Reference statement should not be inside of any code block');
         if (line.content.length <= 4)
             throw line.getError('Empty reference statement');
-        result.refs.push(line.content.substring(4));
+        result.refs.push([line, line.content.substring(4)]);
         //delete current line
         replaceSegment(line, line);
     }

@@ -16,8 +16,8 @@ class PccFile {
     lines: {next: Line} | null;
     constants: Constant[] = [];
     macros: Macro[] = [];
-    refs: string[] = [];
-    imports: string[] = [];
+    refs: [Line, string][] = [];
+    imports: [Line, string][] = [];
 
     constructor(name: string, lines: Iterable<string>) {
         this.name = name;
@@ -26,22 +26,23 @@ class PccFile {
             let r = getDeclarations(this.lines);
             this.constants = r.constants;
             this.imports = r.imports.map(n=>{
-                if (n in getNameMap()) {
-                    if (!getNameMap()[n].endsWith('pcc')) {
+                if (n[1] in getNameMap()) {
+                    if (!getNameMap()[n[1]].endsWith('pcc')) {
+                        throw n[0].getError(`Error in import statement: Only pcc file can be imported`)
                         throw new Error(`Error parsing ${name} dependencies:\nError importing ${n}, which is not a pcc file`);
                     }
-                    return getNameMap()[n];
+                    return <[Line, string]>[n[0], getNameMap()[n[1]]];
                 }
-                return join(name, n + '.pcc');
+                return <[Line, string]>[n[0], join(name, n + '.pcc')];
             });
             this.refs = r.refs.map(n=>{
-                if (n in getNameMap()) {
-                    if (!getNameMap()[n].endsWith('pcd')) {
-                        throw new Error(`Error parsing ${name} dependencies:\nError referencing ${n}, which is not a pcd file`);
+                if (n[1] in getNameMap()) {
+                    if (!getNameMap()[n[1]].endsWith('pcd')) {
+                        throw n[0].getError(`Error in import statement: Only pcd file can be referenced`)
                     }
-                    return getNameMap()[n];
+                    return <[Line, string]>[n[0], getNameMap()[n[1]]];
                 }
-                return join(name, n + '.pcd');
+                return <[Line, string]>[n[0], join(name, n + '.pcd')];
             });;
             this.macros = r.macros;
         }
@@ -68,17 +69,17 @@ class FileManager {
 
         this.imports[name] = new PccFile(name, content.split(LINE_DELIMITER));
 
-        let refs = this.imports[name].refs.filter(r=>!(r in this.refs));
+        let refs = this.imports[name].refs.filter(r=>!(r[1] in this.refs));
         try {
-            (await Promise.all(refs.map(r=>readJson(r)))).map((v, i)=>this.refs[refs[i]] = v);
+            (await Promise.all(refs.map(r=>readJson(r[1]).catch(e=>{throw r[0].getError(e);})))).map((v, i)=>this.refs[refs[i][1]] = v);
         } catch (e) {
             e.message = `Error parsing references for ${name}:\n` + e.message;
             throw e;
         }
 
-        let imports = this.imports[name].imports.filter(i=>!(i in this.imports));
+        let imports = this.imports[name].imports.filter(i=>!(i[1] in this.imports));
         try {
-            await Promise.all(imports.map(i=>this.loadPcc(i)));
+            await Promise.all(imports.map(i=>this.loadPcc(i[1]).catch(e=>{throw i[0].getError(e);})));
         } catch (e) {
             e.message = `Error parsing dependencies for ${name}:\n` + e.message;
             throw e;
@@ -94,7 +95,7 @@ class FileManager {
             }
             //return the constants in the imported files
             for (let i of imports[name].imports) {
-                for (let c of imports[i].constants) {
+                for (let c of imports[i[1]].constants) {
                     yield c;
                 }
             }
@@ -110,7 +111,7 @@ class FileManager {
             }
             //return the macros in the imported files
             for (let i of imports[name].imports) {
-                for (let c of imports[i].macros) {
+                for (let c of imports[i[1]].macros) {
                     yield c;
                 }
             }

@@ -11,7 +11,7 @@ export default <DeclarationParser> {
             throw line.getError('Import statement should not be inside of any code block');
         if (line.content.length <= 7)
             throw line.getError('Empty import statement');
-        result.imports.push(line.content.substring(7));
+        result.imports.push([line, line.content.substring(7)]);
         //delete current line
         replaceSegment(line, line);
     }
