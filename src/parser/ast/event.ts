@@ -26,8 +26,8 @@ export const EventParser: AstParser = {
  * Get the event list in the node
  * @param m Root node to be visited
  */
-export function getEvents(m: Tree<undefined|AstNode, AstNode>): Event[] {
-    let events: Event[] = [];
+export function getEvents(m: Tree<undefined|AstNode, AstNode>): Tree<Event, AstNode>[] {
+    let events: Tree<Event, AstNode>[] = [];
     if (!m.child) {
         return [];
     }
@@ -37,7 +37,7 @@ export function getEvents(m: Tree<undefined|AstNode, AstNode>): Event[] {
                 events = events.concat(getEvents(t));
                 break;
             case 'event':
-                events.push(t.data);
+                events.push(t as Tree<Event, AstNode>);
                 break;
         }
     }

@@ -37,7 +37,6 @@ export interface Module extends BaseNode, TopLevel {
 }
 export interface PlaceHolder extends BaseNode, TopLevel {
     nodeType: 'placeholder';
-    events: EventAnnotation[];
 }
 export interface Template extends BaseNode, TopLevel {
     nodeType: 'template';
@@ -63,7 +62,7 @@ export interface EventAnnotation extends BaseNode, TopLevel {
 export interface If extends BaseNode {
     nodeType: 'if';
     isElse: boolean;
-    hasElse?: boolean;
+    hasElse?: true;
     evaluation: string[]; //commands evaluating the conditions
     condition: string; //the actual execute command(without the function part) condition
 }

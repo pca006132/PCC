@@ -29,8 +29,8 @@ export const FunctionParser: AstParser = {
  * Get the function list in the node
  * @param m Root node to be visited
  */
-export function getFunctions(m: Tree<undefined|AstNode, AstNode>): Function[] {
-    let functions: Function[] = [];
+export function getFunctions(m: Tree<undefined|AstNode, AstNode>): Tree<Function, AstNode>[] {
+    let functions: Tree<Function, AstNode>[] = [];
     if (!m.child) {
         return [];
     }
@@ -40,7 +40,7 @@ export function getFunctions(m: Tree<undefined|AstNode, AstNode>): Function[] {
                 functions = functions.concat(getFunctions(t));
                 break;
             case 'function':
-                functions.push(t.data);
+                functions.push(t as Tree<Function, AstNode>);
                 break;
         }
     }
