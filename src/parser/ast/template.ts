@@ -16,7 +16,12 @@ export const TemplateParser: AstParser = {
             throw l.getError('Invalid template pattern');
         }
         let name = m[1];
-        let params = helper.getParams(m[2]).params.map(v=>new RegExp(helper.regexEscape(v), 'g'));
+        let params;
+        try {
+            params = helper.getParams(m[2]).params.map(v=>new RegExp(helper.regexEscape(v), 'g'));
+        } catch (e) {
+            throw l.getError((e as Error).message);
+        }
 
         //check code block
         if (!l.next || l.next.indent <= l.indent) {
@@ -44,8 +49,8 @@ export const TemplateParser: AstParser = {
  * Get the template list in the node
  * @param m Root node to be visited
  */
-export function getTemplates(m: Tree<undefined|AstNode, AstNode>): Template[] {
-    let templates: Template[] = [];
+export function getTemplates(m: Tree<undefined|AstNode, AstNode>): Tree<Template, AstNode>[] {
+    let templates: Tree<Template, AstNode>[] = [];
     if (!m.child) {
         return [];
     }
@@ -55,7 +60,7 @@ export function getTemplates(m: Tree<undefined|AstNode, AstNode>): Template[] {
                 templates = templates.concat(getTemplates(t));
                 break;
             case 'template':
-                templates.push(t.data);
+                templates.push(t as Tree<Template, AstNode>);
                 break;
         }
     }

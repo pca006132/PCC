@@ -27,10 +27,16 @@ export const parser = <DeclarationParser> {
         for (let l of iterate(line.next, l=>l.indent >= skipIndent)) {
             lineEnd = l;
         }
+        let params;
+        try {
+            params = getParams(m[2]).params.map(p=>new RegExp(regexEscape(p.trim()), 'g'))
+        } catch (e) {
+            throw line.getError((e as Error).message);
+        }
 
         result.macros.push({
             name: new RegExp('^' + regexEscape(m[1])),
-            params: getParams(m[2]).params.map(p=>new RegExp(regexEscape(p.trim()), 'g')),
+            params: params,
             lineStart: lineStart
         })
 

@@ -14,7 +14,12 @@ export const DecoratorAnnotationParser: AstParser = {
         let index = l.content.indexOf('(');
         if (index > -1) {
             name = l.content.substring(11, index);
-            let r = getParams(l.content, index);
+            let r: { params: string[]; index: number; };
+            try {
+                r = getParams(l.content, index);
+            } catch (e) {
+                throw l.getError((e as Error).message);
+            }
             params = r.params;
             if (r.index !== l.content.length) {
                 throw l.getError('Invalid decorator annotation pattern');

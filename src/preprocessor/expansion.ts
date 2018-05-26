@@ -3,9 +3,7 @@
  */
 
 import {Constant, Macro} from './typings';
-import {getParams} from '../util/text';
 import Line from '../util/line';
-import {iterate} from '../util/linked_list';
 import * as sandbox from '../util/sandbox';
 
 import expandConditional from './parsers/conditional';
